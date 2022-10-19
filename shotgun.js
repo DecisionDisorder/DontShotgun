@@ -1,7 +1,20 @@
+const { Trimesh } = require("cannon-es");
+const { MeshPhongMaterial } = require("three");
+
 let container, clock, mixer, actions, activeAction, previousAction, isJumping;
+var keypressed = [false, false, false, false] // w, a, s, d
 var jumpSpeed = 0.75;
+var moveSpeed = 0.1;
 var isPointerLocked = false;
 var player;
+
+const KeyCode = {
+	SPACE: 32,
+	W: 87,
+	A: 65,
+	S: 83,
+	D: 68
+}
 
 var theta = 0;
 var phi = 0;
@@ -52,50 +65,29 @@ window.onload = function init()
 		console.error(error);
 	});
 
-	document.onkeydown = function(event) {
-		console.log(event.keyCode);
-		switch(event.keyCode) {
-		case 32: //space
-			if(!isJumping)
-				jump();
-			break;
-		case 87: // w
-			movePlayer(0);
-			break;
-		case 65: // a
-			movePlayer(1);
-			break;
-		case 83: // s
-			movePlayer(2);
-			break;
-		case 68: // d
-			movePlayer(3);
-			break;
-		}
-	}
-
-	function render() {
-		const dt = clock.getDelta();
-		if(mixer) mixer.update(dt);
-	    requestAnimationFrame(render);
-
-	    renderer.render(scene, camera);
-	}
-
+	setKeyboardInput();
 	setMousePointerLock();
 
 	createFloor();
 
-	function createFloor() {
-		const color = 0xFFFFFF;
-		const boxWidth = 10;
-		const boxHeight = 0.2;
-		const boxDepth = 10;
-		const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+	physicsTest();
+
+	function render() {
+		const dt = clock.getDelta();
+		if(mixer) mixer.update(dt);
+
+		movePlayer();
+		setCameraPosition();
+		requestAnimationFrame(render);
 	
-		const material = new THREE.MeshPhongMaterial({color});
-		const cube = new THREE.Mesh(geometry, material);
-		scene.add(cube);
+		renderer.render(scene, camera);
+	}
+
+	function createFloor() {
+		const planeGeometry = new THREE.PlaneGeometry(25, 25);
+		const planeMesh = new THREE.Mesh(planeGeometry, new THREE.MeshPhongMaterial());
+		planeMesh.receiveShadow = true;
+		
 	}
 }
 
@@ -180,29 +172,85 @@ function setMousePointerLock() {
 	});
 }
 
-function movePlayer(direction) {
-	if(direction == 0) { // forward (w)
-		player.position.z += 1;
+function movePlayer() {
+	if(keypressed[0]) { // forward (w)
+		player.position.z += moveSpeed;
 	}
-	else if(direction == 1) { // left (a)
-		player.position.x += 1;
+	else if(keypressed[1]) { // left (a)
+		player.position.x += moveSpeed;
 	}
-	else if(direction == 2) { // backward (s)
-		player.position.z -= 1;
+	else if(keypressed[2]) { // backward (s)
+		player.position.z -= moveSpeed;
 	}
-	else if(direction == 3) { // right (d)
-		player.position.x -= 1;
+	else if(keypressed[3]) { // right (d)
+		player.position.x -= moveSpeed;
 	}
+}
 
+function angleToRadian(angle) {
+	return angle * Math.PI / 180;
 }
 
 function moveCamera(moveX, moveY) {
 	var mouseSpeed = 2;
 	phi -= moveX * 0.001 * mouseSpeed;
-	var cameraDistHeight = 8;
+	theta += moveY * 0.001 * mouseSpeed;
+	if(theta > angleToRadian(80))
+		theta = angleToRadian(80);
+	else if(theta < angleToRadian(-60))
+		theta =  angleToRadian(-60);
+
+	setCameraPosition();
+}
+
+function setCameraPosition() {
+	var cameraDistHeight = 10;
+	var modelHeight = 3;
 	var cameraDist = 10;
-	camera.position.x = player.position.x + cameraDist * Math.sin(phi);
-	camera.position.y = cameraDistHeight + player.position.y;
-	camera.position.z = player.position.z + cameraDist * Math.cos(phi);
+
+	camera.position.x = player.position.x + cameraDist * Math.cos(theta) * Math.sin(phi);
+	camera.position.y = player.position.y + modelHeight + cameraDistHeight * Math.sin(theta);
+	camera.position.z = player.position.z + cameraDist * Math.cos(theta) * Math.cos(phi) ;
 	camera.lookAt(player.position);
+
+}
+
+function setKeyboardInput() {
+	document.onkeydown = function(event) {
+		console.log(event.keyCode);
+		switch(event.keyCode) {
+		case KeyCode.SPACE: //space
+			if(!isJumping)
+				jump();
+			break;
+		case KeyCode.W: // w
+			keypressed[0] = true;
+			break;
+		case KeyCode.A: // a
+			keypressed[1] = true;
+			break;
+		case KeyCode.S: // s
+			keypressed[2] = true;
+			break;
+		case KeyCode.D: // d
+			keypressed[3] = true;
+			break;
+		}
+	};
+	document.onkeyup = function(event) {
+		switch(event.keyCode) {
+		case KeyCode.W: // w
+			keypressed[0] = false;
+			break;
+		case KeyCode.A: // a
+			keypressed[1] = false;
+			break;
+		case KeyCode.S: // s
+			keypressed[2] = false;
+			break;
+		case KeyCode.D: // d
+			keypressed[3] = false;
+			break;
+		}
+	};
 }
