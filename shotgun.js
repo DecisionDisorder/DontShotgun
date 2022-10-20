@@ -2,6 +2,10 @@ let container, clock, mixer, actions, activeAction, previousAction, isJumping;
 var keypressed = [false, false, false, false] // w, a, s, d
 var jumpSpeed = 0.5;
 var moveSpeed = 0.1;
+var moveForce = 10;
+var jumpForce = 6;
+var sprintRatio = 2;
+var isSprinting = false;
 var isPointerLocked = false;
 var player;
 
@@ -19,6 +23,7 @@ const scene = new THREE.Scene();
 var floorBodyList = [];
 
 const KeyCode = {
+	SHIFT: 16,
 	SPACE: 32,
 	W: 87,
 	A: 65,
@@ -149,7 +154,7 @@ function restoreJump() {
 // Jump the player
 function jump() {
 	isJumping = true;
-	playerBody.applyLocalImpulse(new CANNON.Vec3(0, 6, 0), new CANNON.Vec3(0, 0, 0));
+	playerBody.applyLocalImpulse(new CANNON.Vec3(0, jumpForce, 0), new CANNON.Vec3(0, 0, 0));
 	executeEmote("Jump", restoreJump);
 }
 
@@ -203,30 +208,38 @@ function setMousePointerLock() {
 	});
 }
 
+// 달리기 여부에 따른 스피드 계산
+function getCalculatedSpeed(speed) {
+	if(isSprinting) 
+		return sprintRatio * speed;
+	else
+		return speed;
+}
+
 function movePlayer() {
 	if(keypressed[0]) { // forward (w)
 		if(isJumping)
-			playerBody.applyLocalForce(new CANNON.Vec3(0, 0, 10), new CANNON.Vec3(0, 0, 0));
+			playerBody.applyLocalForce(new CANNON.Vec3(0, 0, getCalculatedSpeed(moveForce)), new CANNON.Vec3(0, 0, 0));
 		else
-			playerBody.position.z += moveSpeed;
+			playerBody.position.z += getCalculatedSpeed(moveSpeed);
 	}
-	else if(keypressed[1]) { // left (a)
+	if(keypressed[1]) { // left (a)
 		if(isJumping)
-			playerBody.applyLocalForce(new CANNON.Vec3(10, 0, 0), new CANNON.Vec3(0, 0, 0));
+			playerBody.applyLocalForce(new CANNON.Vec3(getCalculatedSpeed(moveForce), 0, 0), new CANNON.Vec3(0, 0, 0));
 		else
-			playerBody.position.x += moveSpeed;
+			playerBody.position.x += getCalculatedSpeed(moveSpeed);
 	}
-	else if(keypressed[2]) { // backward (s)
+	if(keypressed[2]) { // backward (s)
 		if(isJumping)
-			playerBody.applyLocalForce(new CANNON.Vec3(0, 0, -10), new CANNON.Vec3(0, 0, 0));
+			playerBody.applyLocalForce(new CANNON.Vec3(0, 0, -getCalculatedSpeed(moveForce)), new CANNON.Vec3(0, 0, 0));
 		else
-			playerBody.position.z -= moveSpeed;
+			playerBody.position.z -= getCalculatedSpeed(moveSpeed);
 	}
-	else if(keypressed[3]) { // right (d)
+	if(keypressed[3]) { // right (d)
 		if(isJumping)
-			playerBody.applyLocalForce(new CANNON.Vec3(-10, 0, 0), new CANNON.Vec3(0, 0, 0));
+			playerBody.applyLocalForce(new CANNON.Vec3(-getCalculatedSpeed(moveForce), 0, 0), new CANNON.Vec3(0, 0, 0));
 		else
-			playerBody.position.x -= moveSpeed;
+			playerBody.position.x -= getCalculatedSpeed(moveSpeed);
 	}
 }
 
@@ -262,9 +275,8 @@ function setKeyboardInput() {
 	document.onkeydown = function(event) {
 		console.log(event.keyCode);
 		switch(event.keyCode) {
-		case KeyCode.SPACE: //space
-			if(!isJumping)
-				jump();
+		case KeyCode.SHIFT: //space
+			isSprinting = true;
 			break;
 		case KeyCode.W: // w
 			keypressed[0] = true;
@@ -286,6 +298,9 @@ function setKeyboardInput() {
 	};
 	document.onkeyup = function(event) {
 		switch(event.keyCode) {
+		case KeyCode.SHIFT:
+			isSprinting = false;
+			break;
 		case KeyCode.W: // w
 			keypressed[0] = false;
 			break;
