@@ -1,12 +1,22 @@
-const { Trimesh } = require("cannon-es");
-const { MeshPhongMaterial } = require("three");
-
 let container, clock, mixer, actions, activeAction, previousAction, isJumping;
 var keypressed = [false, false, false, false] // w, a, s, d
-var jumpSpeed = 0.75;
+var jumpSpeed = 0.5;
 var moveSpeed = 0.1;
 var isPointerLocked = false;
 var player;
+
+var playerSize = 3;
+var playerHeight = 4.5;
+
+const world = new CANNON.World();
+const playerShape = new CANNON.Box(new CANNON.Vec3(playerSize / 2, playerHeight / 2, playerSize / 2));
+const playerBody = new CANNON.Body({
+	mass:1,
+	position: new CANNON.Vec3(0, 2, 0)
+});
+const scene = new THREE.Scene();
+
+var floorBodyList = [];
 
 const KeyCode = {
 	SPACE: 32,
@@ -33,7 +43,6 @@ window.onload = function init()
 	const renderer = new THREE.WebGLRenderer({canvas});
 	renderer.setSize(canvas.width,canvas.height);
 
-	const scene = new THREE.Scene();
 	scene.background = new THREE.Color(0x000000);
 
 	camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
@@ -61,22 +70,25 @@ window.onload = function init()
 		scene.add(gltf.scene);
 		loadAnimation(player, gltf.animations);
 		render();
+
 	}, undefined, function (error) {
 		console.error(error);
 	});
 
+	createPlayerHitBox();
+	createFloor();
+	initPhysics();
+
 	setKeyboardInput();
 	setMousePointerLock();
-
-	createFloor();
-
-	physicsTest();
 
 	function render() {
 		const dt = clock.getDelta();
 		if(mixer) mixer.update(dt);
 
+		world.step(1/60, dt, 3);
 		movePlayer();
+		playerPhysics();
 		setCameraPosition();
 		requestAnimationFrame(render);
 	
@@ -84,10 +96,17 @@ window.onload = function init()
 	}
 
 	function createFloor() {
-		const planeGeometry = new THREE.PlaneGeometry(25, 25);
+		const planeGeometry = new THREE.PlaneGeometry(20, 20);
 		const planeMesh = new THREE.Mesh(planeGeometry, new THREE.MeshPhongMaterial());
 		planeMesh.receiveShadow = true;
-		
+		planeMesh.rotateX(-Math.PI / 2);
+		scene.add(planeMesh);
+		const planeShape = new CANNON.Plane();
+		const planeBody = new CANNON.Body({mass: 0});
+		planeBody.addShape(planeShape);
+		planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
+		world.addBody(planeBody);
+		floorBodyList.push(planeBody);
 	}
 }
 
@@ -130,8 +149,20 @@ function restoreJump() {
 // Jump the player
 function jump() {
 	isJumping = true;
+	playerBody.applyLocalImpulse(new CANNON.Vec3(0, 6, 0), new CANNON.Vec3(0, 0, 0));
 	executeEmote("Jump", restoreJump);
 }
+
+function restoreOtherState() {
+	mixer.removeEventListener('finished', restoreOtherState);
+	fadeToAction(api.state, 0.2);
+}
+
+function walk() {
+	if(activeAction == actions["Idle"])
+		executeEmote("Walking", restoreOtherState);
+}
+
 
 // Naturally shifts the animation of the model slowly
 function fadeToAction(name, duration) {
@@ -174,16 +205,28 @@ function setMousePointerLock() {
 
 function movePlayer() {
 	if(keypressed[0]) { // forward (w)
-		player.position.z += moveSpeed;
+		if(isJumping)
+			playerBody.applyLocalForce(new CANNON.Vec3(0, 0, 10), new CANNON.Vec3(0, 0, 0));
+		else
+			playerBody.position.z += moveSpeed;
 	}
 	else if(keypressed[1]) { // left (a)
-		player.position.x += moveSpeed;
+		if(isJumping)
+			playerBody.applyLocalForce(new CANNON.Vec3(10, 0, 0), new CANNON.Vec3(0, 0, 0));
+		else
+			playerBody.position.x += moveSpeed;
 	}
 	else if(keypressed[2]) { // backward (s)
-		player.position.z -= moveSpeed;
+		if(isJumping)
+			playerBody.applyLocalForce(new CANNON.Vec3(0, 0, -10), new CANNON.Vec3(0, 0, 0));
+		else
+			playerBody.position.z -= moveSpeed;
 	}
 	else if(keypressed[3]) { // right (d)
-		player.position.x -= moveSpeed;
+		if(isJumping)
+			playerBody.applyLocalForce(new CANNON.Vec3(-10, 0, 0), new CANNON.Vec3(0, 0, 0));
+		else
+			playerBody.position.x -= moveSpeed;
 	}
 }
 
@@ -225,15 +268,19 @@ function setKeyboardInput() {
 			break;
 		case KeyCode.W: // w
 			keypressed[0] = true;
+			walk();
 			break;
 		case KeyCode.A: // a
 			keypressed[1] = true;
+			walk();
 			break;
 		case KeyCode.S: // s
 			keypressed[2] = true;
+			walk();
 			break;
 		case KeyCode.D: // d
 			keypressed[3] = true;
+			walk();
 			break;
 		}
 	};
@@ -253,4 +300,61 @@ function setKeyboardInput() {
 			break;
 		}
 	};
+}
+
+function createPlayerHitBox() {
+	playerBox = new THREE.BoxGeometry(playerSize, playerHeight, playerSize);
+	var playerMaterial = new THREE.MeshPhongMaterial({color: 0x882288});
+	playerMaterial.transparent = true;
+	playerMaterial.opacity = 0.5;
+	playerBoxMesh = new THREE.Mesh(playerBox, playerMaterial);
+	scene.add(playerBoxMesh);
+}
+
+function initPhysics() {
+    world.gravity.set(0, -9.82, 0);
+	playerBody.fixedRotation = true;
+	playerBody.addShape(playerShape);
+	world.addBody(playerBody);
+	
+	const playerPhysicsMaterial = new CANNON.Material();
+	const floorPhysicsMaterial = new CANNON.Material();
+	const playerFloorContactMaterial = new CANNON.ContactMaterial(
+		playerPhysicsMaterial,
+		floorPhysicsMaterial,
+		{
+			friction: 0.1,
+			restitution: 0
+		}
+	);
+
+	world.addContactMaterial(playerFloorContactMaterial);
+	playerBody.material = playerPhysicsMaterial;
+	floorBodyList[0].material = floorPhysicsMaterial;
+}
+
+function playerPhysics() {
+	player.position.set(
+		playerBody.position.x,
+		playerBody.position.y - playerHeight / 2,
+		playerBody.position.z
+	);
+	player.quaternion.set(
+		playerBody.quaternion.x,
+		playerBody.quaternion.y,
+		playerBody.quaternion.z,
+		playerBody.quaternion.w
+	);
+
+	playerBoxMesh.position.set(
+		playerBody.position.x,
+		playerBody.position.y,
+		playerBody.position.z
+	);
+	playerBoxMesh.quaternion.set(
+		playerBody.quaternion.x,
+		playerBody.quaternion.y,
+		playerBody.quaternion.z,
+		playerBody.quaternion.w
+	);
 }
