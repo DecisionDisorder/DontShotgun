@@ -32,7 +32,7 @@ const KeyCode = {
 }
 
 var theta = 0;
-var phi = 0;
+var phi = 3.14;
 
 const api = {state: 'Idle'};
 
@@ -154,8 +154,12 @@ function restoreJump() {
 // Jump the player
 function jump() {
 	isJumping = true;
-	playerBody.applyLocalImpulse(new CANNON.Vec3(0, jumpForce, 0), new CANNON.Vec3(0, 0, 0));
 	executeEmote("Jump", restoreJump);
+	setTimeout(jumpOnPhysics, 400)
+}
+
+function jumpOnPhysics() {
+	playerBody.applyLocalImpulse(new CANNON.Vec3(0, jumpForce, 0), new CANNON.Vec3(0, 0, 0));
 }
 
 function restoreOtherState() {
@@ -221,7 +225,7 @@ function movePlayer() {
 		if(isJumping)
 			playerBody.applyLocalForce(new CANNON.Vec3(0, 0, getCalculatedSpeed(moveForce)), new CANNON.Vec3(0, 0, 0));
 		else
-			playerBody.position.z += getCalculatedSpeed(moveSpeed);
+			playerBody.position.z += getCalculatedSpeed(moveSpeed);//playerBody.vectorToWorldFrame(getCalculatedSpeed(moveSpeed));
 	}
 	if(keypressed[1]) { // left (a)
 		if(isJumping)
@@ -241,6 +245,8 @@ function movePlayer() {
 		else
 			playerBody.position.x -= getCalculatedSpeed(moveSpeed);
 	}
+	if(isNaN(playerBody.position.x))
+		console.log("NaN Occured!");
 }
 
 function angleToRadian(angle) {
@@ -257,6 +263,7 @@ function moveCamera(moveX, moveY) {
 		theta =  angleToRadian(-60);
 
 	setCameraPosition();
+	playerBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), phi + Math.PI);
 }
 
 function setCameraPosition() {
