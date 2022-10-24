@@ -3,7 +3,7 @@ var keypressed = [false, false, false, false] // w, a, s, d
 var jumpSpeed = 0.5;
 var moveSpeed = 0.1;
 var moveForce = 10;
-var jumpForce = 4;
+var jumpForce = 10;
 var sprintRatio = 2;
 var isSprinting = false;
 var isPointerLocked = false;
@@ -11,6 +11,8 @@ var player;
 
 var playerSize = 3;
 var playerHeight = 4.5;
+
+const gravity = 25;
 
 const world = new CANNON.World();
 const playerShape = new CANNON.Box(new CANNON.Vec3(playerSize / 2, playerHeight / 2, playerSize / 2));
@@ -203,13 +205,14 @@ function restoreJump() {
 
 // Jump the player
 function jump() {
-	isJumping = true;
 	executeEmote("Jump", restoreJump);
 	setTimeout(jumpOnPhysics, 400)
 }
 
 function jumpOnPhysics() {
-	playerBody.applyLocalImpulse(new CANNON.Vec3(0, jumpForce, 0), new CANNON.Vec3(0, 0, 0));
+	isJumping = true;
+	var jumpDirection = getMovingDirection() * getCalculatedSpeed(moveForce);
+	playerBody.applyLocalImpulse(new CANNON.Vec3(jumpDirection.x, jumpForce, jumpDirection.z), new CANNON.Vec3(0, 0, 0));
 }
 
 function restoreOtherState() {
@@ -271,32 +274,41 @@ function getCalculatedSpeed(speed) {
 }
 
 function movePlayer() {
-	if(keypressed[0]) { // forward (w)
-		if(isJumping)
-			playerBody.applyLocalForce(new CANNON.Vec3(0, 0, getCalculatedSpeed(moveForce)), new CANNON.Vec3(0, 0, 0));
-		else
-			playerBody.position.z += getCalculatedSpeed(moveSpeed);//playerBody.vectorToWorldFrame(getCalculatedSpeed(moveSpeed));
+	var movingDirection = getMovingDirection();
+	var calculatedMoveForce = getCalculatedSpeed(moveForce);
+	var calculatedMoveSpeed = getCalculatedSpeed(moveSpeed);
+	//console.log(movingDirection.x * calculatedMoveForce);
+	//console.log(movingDirection.z * calculatedMoveForce);
+	if(isJumping) {
+		playerBody.applyLocalForce(new CANNON.Vec3(movingDirection.x * calculatedMoveForce, 0, movingDirection.z * calculatedMoveForce), new CANNON.Vec3(0, 0, 0));
 	}
-	if(keypressed[1]) { // left (a)
-		if(isJumping)
-			playerBody.applyLocalForce(new CANNON.Vec3(getCalculatedSpeed(moveForce), 0, 0), new CANNON.Vec3(0, 0, 0));
-		else
-			playerBody.position.x += getCalculatedSpeed(moveSpeed);
+	else {
+		//playerBody.position.x += movingDirection.x * calculatedMoveSpeed;
+		//playerBody.position.z += movingDirection.z * calculatedMoveSpeed;
+		let relativeVector = new CANNON.Vec3(movingDirection.x * calculatedMoveSpeed, 0, movingDirection.z * calculatedMoveSpeed);
+
+		// Use quaternion to rotate the relative vector, store result in same vector
+		playerBody.quaternion.vmult(relativeVector, relativeVector);
+
+		// Add position and relative vector, store in body.position
+		playerBody.position.vadd(relativeVector, playerBody.position);
 	}
-	if(keypressed[2]) { // backward (s)
-		if(isJumping)
-			playerBody.applyLocalForce(new CANNON.Vec3(0, 0, -getCalculatedSpeed(moveForce)), new CANNON.Vec3(0, 0, 0));
-		else
-			playerBody.position.z -= getCalculatedSpeed(moveSpeed);
-	}
-	if(keypressed[3]) { // right (d)
-		if(isJumping)
-			playerBody.applyLocalForce(new CANNON.Vec3(-getCalculatedSpeed(moveForce), 0, 0), new CANNON.Vec3(0, 0, 0));
-		else
-			playerBody.position.x -= getCalculatedSpeed(moveSpeed);
-	}
+	
+	//let body = new CANNON.Body({ mass: 0 });
+	//body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,0,1),(2*Math.PI)/6);
+	
+
 	if(isNaN(playerBody.position.x))
 		console.log("NaN Occured!");
+}
+
+function getMovingDirection() {
+	var direction = new THREE.Vector3(0, 0, 0);
+	direction.z = (keypressed[0] ? 1 : 0) + (keypressed[2] ? -1 : 0);
+	direction.x = (keypressed[1] ? 1 : 0) + (keypressed[3] ? -1 : 0);
+	if(keypressed[0])
+		console.log(keypressed[0]);
+	return direction;
 }
 
 function angleToRadian(angle) {
@@ -384,7 +396,7 @@ function createPlayerHitBox() {
 }
 
 function initPhysics() {
-    world.gravity.set(0, -9.82, 0);
+    world.gravity.set(0, -gravity, 0);
 	playerBody.fixedRotation = true;
 	playerBody.addShape(playerShape);
 	world.addBody(playerBody);
