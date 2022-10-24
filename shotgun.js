@@ -3,7 +3,7 @@ var keypressed = [false, false, false, false] // w, a, s, d
 var jumpSpeed = 0.5;
 var moveSpeed = 0.1;
 var moveForce = 10;
-var jumpForce = 6;
+var jumpForce = 4;
 var sprintRatio = 2;
 var isSprinting = false;
 var isPointerLocked = false;
@@ -21,6 +21,7 @@ const playerBody = new CANNON.Body({
 const scene = new THREE.Scene();
 
 var floorBodyList = [];
+var stepBodyList = [];
 
 const KeyCode = {
 	SHIFT: 16,
@@ -80,6 +81,33 @@ window.onload = function init()
 		console.error(error);
 	});
 
+	const map_loader = new THREE.ObjectLoader();
+	map_loader.load(
+		// resource URL
+		"model/test.json",
+		// onLoad callback
+		// Here the loaded data is assumed to be an object
+		function ( obj ) {
+			// Add the loaded object to the scene
+			for(i=0;i<obj.children.length;i++){
+				createStep(obj.children[i])
+			}
+			
+			
+		},
+		// onProgress callback
+		function ( xhr ) {
+			console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+		},
+
+		// onError callback
+		function ( err ) {
+			console.error( 'An error happened' );
+		}
+	);
+
+	
+
 	createPlayerHitBox();
 	createFloor();
 	initPhysics();
@@ -112,6 +140,28 @@ window.onload = function init()
 		planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
 		world.addBody(planeBody);
 		floorBodyList.push(planeBody);
+	}
+
+	function createStep(obj) {
+		console.log(obj)
+		const BoxGeometry = new THREE.BoxGeometry(obj.scale.x,obj.scale.y,obj.scale.z);
+		const BoxMesh = new THREE.Mesh(BoxGeometry, new THREE.MeshPhongMaterial());
+		BoxMesh.receiveShadow = true;
+		BoxMesh.position.copy(obj.position)
+		BoxMesh.quaternion.set(obj.quaternion.x, obj.quaternion.y, obj.quaternion.z,obj.quaternion.w)
+    	scene.add(BoxMesh)
+		const defaultMaterial = new CANNON.Material('default')
+		const BoxShape = new CANNON.Box(new CANNON.Vec3(obj.scale.x*0.5,obj.scale.y*0.5,obj.scale.z*0.5))
+		const body = new CANNON.Body({
+			mass: 0,
+			position: new CANNON.Vec3(obj.position.x,obj.position.y,obj.position.z),
+			shape: BoxShape,
+			material: defaultMaterial
+		})
+		body.position.copy(obj.position)
+		body.quaternion.set(obj.quaternion.x, obj.quaternion.y, obj.quaternion.z,obj.quaternion.w)
+		world.addBody(body);
+		//floorBodyList.push(planeBody);
 	}
 }
 
