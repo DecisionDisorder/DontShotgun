@@ -9,10 +9,13 @@ var isSprinting = false;
 var isPointerLocked = false;
 var player;
 
+var isPlayerAlive = true;
+
 var playerSize = 3;
 var playerHeight = 4.5;
 
 const gravity = 25;
+const deathDepth = -20;
 
 const world = new CANNON.World();
 const playerShape = new CANNON.Box(new CANNON.Vec3(playerSize / 2, playerHeight / 2, playerSize / 2));
@@ -34,8 +37,10 @@ const KeyCode = {
 	D: 68
 }
 
-var theta = 0;
-var phi = 3.14;
+const init_theta = 0;
+const init_phi = 3.14;
+var theta = init_theta;
+var phi = init_phi;
 
 const api = {state: 'Idle'};
 
@@ -131,17 +136,24 @@ window.onload = function init()
 	}
 
 	function createFloor() {
-		const planeGeometry = new THREE.PlaneGeometry(20, 20);
-		const planeMesh = new THREE.Mesh(planeGeometry, new THREE.MeshPhongMaterial());
-		planeMesh.receiveShadow = true;
-		planeMesh.rotateX(-Math.PI / 2);
-		scene.add(planeMesh);
-		const planeShape = new CANNON.Plane();
-		const planeBody = new CANNON.Body({mass: 0});
-		planeBody.addShape(planeShape);
-		planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
-		world.addBody(planeBody);
-		floorBodyList.push(planeBody);
+		const floorGeometry = new THREE.BoxGeometry(20, 0.1, 20);
+		const floorMesh = new THREE.Mesh(floorGeometry, new THREE.MeshPhongMaterial());
+		floorMesh.receiveShadow = true;
+		scene.add(floorMesh);
+		const floorShape = new CANNON.Box(new CANNON.Vec3(10, 0.05, 10));
+		const floorBody = new CANNON.Body({mass: 0});
+		floorBody.addShape(floorShape);
+		
+		const deathFloorShape = new CANNON.Plane();
+		const deathFloorBody = new CANNON.Body({mass: 0});
+		deathFloorBody.addShape(deathFloorShape);
+		deathFloorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
+		deathFloorBody.position.y = deathDepth - 5;
+
+		world.addBody(floorBody);
+		world.addBody(deathFloorBody);
+
+		floorBodyList.push(floorBody);
 	}
 
 	function createStep(obj) {
@@ -205,8 +217,10 @@ function restoreJump() {
 
 // Jump the player
 function jump() {
-	executeEmote("Jump", restoreJump);
-	setTimeout(jumpOnPhysics, 400)
+	if(isPlayerAlive) {
+		executeEmote("Jump", restoreJump);
+		setTimeout(jumpOnPhysics, 400)
+	}
 }
 
 function jumpOnPhysics() {
@@ -221,7 +235,7 @@ function restoreOtherState() {
 }
 
 function walk() {
-	if(activeAction == actions["Idle"])
+	if(activeAction == actions["Idle"] && isPlayerAlive)
 		executeEmote("Walking", restoreOtherState);
 }
 
@@ -274,32 +288,30 @@ function getCalculatedSpeed(speed) {
 }
 
 function movePlayer() {
-	var movingDirection = getMovingDirection();
-	var calculatedMoveForce = getCalculatedSpeed(moveForce);
-	var calculatedMoveSpeed = getCalculatedSpeed(moveSpeed);
-	//console.log(movingDirection.x * calculatedMoveForce);
-	//console.log(movingDirection.z * calculatedMoveForce);
-	if(isJumping) {
-		playerBody.applyLocalForce(new CANNON.Vec3(movingDirection.x * calculatedMoveForce, 0, movingDirection.z * calculatedMoveForce), new CANNON.Vec3(0, 0, 0));
+	if(isPlayerAlive) {
+		var movingDirection = getMovingDirection();
+		var calculatedMoveForce = getCalculatedSpeed(moveForce);
+		var calculatedMoveSpeed = getCalculatedSpeed(moveSpeed);
+		//console.log(movingDirection.x * calculatedMoveForce);
+		//console.log(movingDirection.z * calculatedMoveForce);
+		if(isJumping) {
+			playerBody.applyLocalForce(new CANNON.Vec3(movingDirection.x * calculatedMoveForce, 0, movingDirection.z * calculatedMoveForce), new CANNON.Vec3(0, 0, 0));
+		}
+		else {
+			//playerBody.position.x += movingDirection.x * calculatedMoveSpeed;
+			//playerBody.position.z += movingDirection.z * calculatedMoveSpeed;
+			let relativeVector = new CANNON.Vec3(movingDirection.x * calculatedMoveSpeed, 0, movingDirection.z * calculatedMoveSpeed);
+
+			// Use quaternion to rotate the relative vector, store result in same vector
+			playerBody.quaternion.vmult(relativeVector, relativeVector);
+
+			// Add position and relative vector, store in body.position
+			playerBody.position.vadd(relativeVector, playerBody.position);
+		}
+		
+		if(isNaN(playerBody.position.x))
+			console.log("NaN Occured!");
 	}
-	else {
-		//playerBody.position.x += movingDirection.x * calculatedMoveSpeed;
-		//playerBody.position.z += movingDirection.z * calculatedMoveSpeed;
-		let relativeVector = new CANNON.Vec3(movingDirection.x * calculatedMoveSpeed, 0, movingDirection.z * calculatedMoveSpeed);
-
-		// Use quaternion to rotate the relative vector, store result in same vector
-		playerBody.quaternion.vmult(relativeVector, relativeVector);
-
-		// Add position and relative vector, store in body.position
-		playerBody.position.vadd(relativeVector, playerBody.position);
-	}
-	
-	//let body = new CANNON.Body({ mass: 0 });
-	//body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,0,1),(2*Math.PI)/6);
-	
-
-	if(isNaN(playerBody.position.x))
-		console.log("NaN Occured!");
 }
 
 function getMovingDirection() {
@@ -325,7 +337,8 @@ function moveCamera(moveX, moveY) {
 		theta =  angleToRadian(-60);
 
 	setCameraPosition();
-	playerBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), phi + Math.PI);
+	if(isPlayerAlive)
+		playerBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), phi + Math.PI);
 }
 
 function setCameraPosition() {
@@ -344,6 +357,9 @@ function setKeyboardInput() {
 	document.onkeydown = function(event) {
 		console.log(event.keyCode);
 		switch(event.keyCode) {
+		case KeyCode.SPACE:
+			respawn();
+			break;
 		case KeyCode.SHIFT: //space
 			isSprinting = true;
 			break;
@@ -441,4 +457,27 @@ function playerPhysics() {
 		playerBody.quaternion.z,
 		playerBody.quaternion.w
 	);
+
+	checkGameOver();
+}
+
+function checkGameOver() {
+	if(playerBody.position.y < deathDepth && isPlayerAlive) {
+		isPlayerAlive = false;
+		restoreJump();
+		restoreOtherState();
+		fadeToAction("Death", 0.5);
+		document.getElementById('ui-game-over').style.visibility = "visible";
+	}
+}
+
+function respawn() {
+	if(!isPlayerAlive) {
+		playerBody.position.set(0, 2, 0);
+		isPlayerAlive = true;
+		fadeToAction("Idle", 0.5);
+		document.getElementById('ui-game-over').style.visibility = "hidden";
+		phi = init_phi;
+		theta = init_theta;
+	}
 }
