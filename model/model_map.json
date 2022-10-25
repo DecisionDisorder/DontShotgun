@@ -1,0 +1,17 @@
+model_map = {
+    "model": [ 
+        {
+            "path": "./model/SheenChair.glb", 
+            "position": {
+                "x": 10,
+                "y": 3,
+                "z": 0
+            },
+            "scale": {
+                "x": 5,
+                "y": 5,
+                "z": 5
+            }
+        }
+    ]
+}

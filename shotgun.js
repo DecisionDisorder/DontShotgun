@@ -122,6 +122,8 @@ window.onload = function init()
 	setKeyboardInput();
 	setMousePointerLock();
 
+	loadModelMap();
+
 	function render() {
 		const dt = clock.getDelta();
 		if(mixer) mixer.update(dt);
@@ -479,5 +481,26 @@ function respawn() {
 		document.getElementById('ui-game-over').style.visibility = "hidden";
 		phi = init_phi;
 		theta = init_theta;
+	}
+}
+
+function loadModelMap() {
+	let mapData = JSON.parse(JSON.stringify(model_map));
+
+	for(var i = 0; i < mapData.model.length; i++) {
+		var modelPos = mapData.model[i].position;
+		var modelScale = mapData.model[i].scale;
+		console.log(modelPos);
+
+		const loader = new THREE.GLTFLoader();
+		loader.load(mapData.model[i].path, function(gltf){
+			mapModel = gltf.scene;
+			mapModel.position.set(modelPos.x, modelPos.y, modelPos.z);
+			mapModel.scale.set(modelScale.x, modelScale.y, modelScale.z);
+			scene.add(gltf.scene);
+
+		}, undefined, function (error) {
+			console.error(error);
+		});
 	}
 }
