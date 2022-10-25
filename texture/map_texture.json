@@ -1,0 +1,8 @@
+map_texture = {
+    "data": [
+        {
+            "target_index": 0,
+            "path": "./texture/crate.gif"
+        }
+    ]
+}

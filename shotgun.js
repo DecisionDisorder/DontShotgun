@@ -25,6 +25,8 @@ const playerBody = new CANNON.Body({
 });
 const scene = new THREE.Scene();
 
+var stepMeshList = [];
+
 var floorBodyList = [];
 var stepBodyList = [];
 
@@ -100,6 +102,7 @@ window.onload = function init()
 				createStep(obj.children[i])
 			}
 			
+			loadMapTexture();
 			
 		},
 		// onProgress callback
@@ -165,6 +168,7 @@ window.onload = function init()
 		BoxMesh.receiveShadow = true;
 		BoxMesh.position.copy(obj.position)
 		BoxMesh.quaternion.set(obj.quaternion.x, obj.quaternion.y, obj.quaternion.z,obj.quaternion.w)
+		stepMeshList.push(BoxMesh);
     	scene.add(BoxMesh)
 		const defaultMaterial = new CANNON.Material('default')
 		const BoxShape = new CANNON.Box(new CANNON.Vec3(obj.scale.x*0.5,obj.scale.y*0.5,obj.scale.z*0.5))
@@ -490,10 +494,10 @@ function loadModelMap() {
 	for(var i = 0; i < mapData.model.length; i++) {
 		var modelPos = mapData.model[i].position;
 		var modelScale = mapData.model[i].scale;
-		console.log(modelPos);
+		var modelPath = mapData.model[i].path;
 
 		const loader = new THREE.GLTFLoader();
-		loader.load(mapData.model[i].path, function(gltf){
+		loader.load(modelPath, function(gltf){
 			mapModel = gltf.scene;
 			mapModel.position.set(modelPos.x, modelPos.y, modelPos.z);
 			mapModel.scale.set(modelScale.x, modelScale.y, modelScale.z);
@@ -502,5 +506,18 @@ function loadModelMap() {
 		}, undefined, function (error) {
 			console.error(error);
 		});
+	}
+}
+
+function loadMapTexture() {
+	let mapTextureData = JSON.parse(JSON.stringify(map_texture));
+
+	for(var i = 0; i < mapTextureData.data.length; i++) {
+		var targetIndex = mapTextureData.data[i].target_index;
+		var texturePath = mapTextureData.data[i].path;
+
+		const texture = new THREE.TextureLoader().load(texturePath);
+		const material = new THREE.MeshBasicMaterial({map: texture});
+		stepMeshList[targetIndex].material = material;
 	}
 }
