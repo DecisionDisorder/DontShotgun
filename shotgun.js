@@ -65,7 +65,16 @@ window.onload = function init()
 	const renderer = new THREE.WebGLRenderer({canvas});
 	renderer.setSize(canvas.width,canvas.height);
 
-	scene.background = new THREE.Color(0x000000);
+	scene.background = new THREE.CubeTextureLoader()
+	.setPath('BG/')
+	.load([
+		'right.jpg',
+		'left.jpg',
+		'top.jpg',
+		'bottom.jpg',
+		'front.jpg',
+		'back.jpg'
+	]);
 
 	camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
 	camera.rotation.y = 45 / 180 * Math.PI;
