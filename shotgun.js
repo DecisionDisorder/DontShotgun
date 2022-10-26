@@ -1,4 +1,4 @@
-let container, clock, mixer, actions, activeAction, previousAction, isJumping;
+let container, clock, mixer, actions, activeAction, previousAction, isJumping = false;
 var keypressed = [false, false, false, false] // w, a, s, d
 var jumpSpeed = 0.5;
 var moveSpeed = 0.1;
@@ -9,6 +9,7 @@ var isSprinting = false;
 var isPointerLocked = false;
 var player;
 
+var deathCount = 0;
 var isPlayerAlive = true;
 
 var playerSize = 3;
@@ -36,8 +37,14 @@ const KeyCode = {
 	W: 87,
 	A: 65,
 	S: 83,
-	D: 68
+	D: 68,
+	E: 69,
+	Q: 81
 }
+
+const initSuperJumpCoolTime = 10;
+var superJumpForce = 50;
+var superJumpCoolTime = 0;
 
 const init_theta = 0;
 const init_phi = 3.14;
@@ -135,6 +142,7 @@ window.onload = function init()
 		movePlayer();
 		playerPhysics();
 		setCameraPosition();
+		superJumpCoolDown(dt);
 		requestAnimationFrame(render);
 	
 		renderer.render(scene, camera);
@@ -213,19 +221,11 @@ function executeEmote(name, restoreState) {
 	mixer.addEventListener('finished', restoreState);
 }
 
-// On end of jumping motion
-function restoreJump() {
-	mixer.removeEventListener('finished', restoreJump);
-	fadeToAction(api.state, 0.2);
-	if(isJumping)
-		isJumping = false;
-}
-
 // Jump the player
 function jump() {
-	if(isPlayerAlive) {
-		executeEmote("Jump", restoreJump);
-		setTimeout(jumpOnPhysics, 400)
+	if(isPlayerAlive && !isJumping) {
+		executeEmote("Jump", restoreState);
+		setTimeout(jumpOnPhysics, 400);
 	}
 }
 
@@ -233,16 +233,17 @@ function jumpOnPhysics() {
 	isJumping = true;
 	var jumpDirection = getMovingDirection() * getCalculatedSpeed(moveForce);
 	playerBody.applyLocalImpulse(new CANNON.Vec3(jumpDirection.x, jumpForce, jumpDirection.z), new CANNON.Vec3(0, 0, 0));
+	playerBody.addEventListener("collide", disableJump);
 }
 
-function restoreOtherState() {
-	mixer.removeEventListener('finished', restoreOtherState);
+function restoreState() {
+	mixer.removeEventListener('finished', restoreState);
 	fadeToAction(api.state, 0.2);
 }
 
 function walk() {
 	if(activeAction == actions["Idle"] && isPlayerAlive)
-		executeEmote("Walking", restoreOtherState);
+		executeEmote("Walking", restoreState);
 }
 
 
@@ -298,14 +299,10 @@ function movePlayer() {
 		var movingDirection = getMovingDirection();
 		var calculatedMoveForce = getCalculatedSpeed(moveForce);
 		var calculatedMoveSpeed = getCalculatedSpeed(moveSpeed);
-		//console.log(movingDirection.x * calculatedMoveForce);
-		//console.log(movingDirection.z * calculatedMoveForce);
 		if(isJumping) {
 			playerBody.applyLocalForce(new CANNON.Vec3(movingDirection.x * calculatedMoveForce, 0, movingDirection.z * calculatedMoveForce), new CANNON.Vec3(0, 0, 0));
 		}
 		else {
-			//playerBody.position.x += movingDirection.x * calculatedMoveSpeed;
-			//playerBody.position.z += movingDirection.z * calculatedMoveSpeed;
 			let relativeVector = new CANNON.Vec3(movingDirection.x * calculatedMoveSpeed, 0, movingDirection.z * calculatedMoveSpeed);
 
 			// Use quaternion to rotate the relative vector, store result in same vector
@@ -384,6 +381,9 @@ function setKeyboardInput() {
 		case KeyCode.D: // d
 			keypressed[3] = true;
 			walk();
+			break;
+		case KeyCode.E:
+			superJumpSkill();
 			break;
 		}
 	};
@@ -470,8 +470,8 @@ function playerPhysics() {
 function checkGameOver() {
 	if(playerBody.position.y < deathDepth && isPlayerAlive) {
 		isPlayerAlive = false;
-		restoreJump();
-		restoreOtherState();
+		deathCount++;
+		restoreState();
 		fadeToAction("Death", 0.5);
 		document.getElementById('ui-game-over').style.visibility = "visible";
 	}
@@ -498,11 +498,17 @@ function loadModelMap() {
 
 		const loader = new THREE.GLTFLoader();
 		loader.load(modelPath, function(gltf){
-			mapModel = gltf.scene;
+			var mapModel = gltf.scene;
 			mapModel.position.set(modelPos.x, modelPos.y, modelPos.z);
 			mapModel.scale.set(modelScale.x, modelScale.y, modelScale.z);
 			scene.add(gltf.scene);
 
+			//three to cannon이 안될때 최후의 보루
+			var modelShape = new CANNON.Box(new CANNON.Vec3(modelScale.x / 2, modelScale.y / 2, modelScale.z / 2))
+			var modelBody = new CANNON.Body({mass: 0});
+			modelBody.addShape(modelShape);
+			modelBody.position.copy(mapModel.position);
+			world.addBody(modelBody);
 		}, undefined, function (error) {
 			console.error(error);
 		});
@@ -520,4 +526,37 @@ function loadMapTexture() {
 		const material = new THREE.MeshBasicMaterial({map: texture});
 		stepMeshList[targetIndex].material = material;
 	}
+}
+
+function superJumpCoolDown(deltaTime) {
+	if(superJumpCoolTime > 0) {
+		superJumpCoolTime -= deltaTime;
+		if(superJumpCoolTime < 0) {
+			superJumpCoolTime = 0;
+			document.getElementById("cool-down-timer-0").style.visibility = "hidden";
+		}
+		
+		document.getElementById("cool-time-text").innerText = Math.ceil(superJumpCoolTime);
+	}
+}
+
+function superJumpSkill() {
+	if(isPlayerAlive && superJumpCoolTime == 0) {
+		executeEmote("Jump", restoreState);
+		setTimeout(superJumpOnPhysics, 400);
+		document.getElementById("cool-down-timer-0").style.visibility = "visible";
+		superJumpCoolTime = initSuperJumpCoolTime;
+	}
+}
+
+function disableJump() {
+	isJumping = false;
+	playerBody.removeEventListener("collide", disableJump);
+}
+
+function superJumpOnPhysics() {
+	isJumping = true;
+	var jumpDirection = getMovingDirection() * getCalculatedSpeed(moveForce);
+	playerBody.applyLocalImpulse(new CANNON.Vec3(jumpDirection.x, superJumpForce, jumpDirection.z), new CANNON.Vec3(0, 0, 0));
+	playerBody.addEventListener("collide", disableJump);
 }
