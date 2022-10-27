@@ -543,9 +543,12 @@ function superJumpCoolDown(deltaTime) {
 		if(superJumpCoolTime < 0) {
 			superJumpCoolTime = 0;
 			document.getElementById("cool-down-timer-0").style.visibility = "hidden";
+			document.getElementById("cool-time-text-0").style.visibility = "hidden";
+			document.getElementById("skill-key-guide-0").style.visibility = "visible";
 		}
 		
-		document.getElementById("cool-time-text").innerText = Math.ceil(superJumpCoolTime);
+		document.getElementById("cool-time-text-0").innerText = Math.ceil(superJumpCoolTime);
+		document.getElementById("cool-down-timer-0").style.height = (superJumpCoolTime / initSuperJumpCoolTime * 100);
 	}
 }
 
@@ -554,6 +557,8 @@ function superJumpSkill() {
 		executeEmote("Jump", restoreState);
 		setTimeout(superJumpOnPhysics, 400);
 		document.getElementById("cool-down-timer-0").style.visibility = "visible";
+		document.getElementById("cool-time-text-0").style.visibility = "visible";
+		document.getElementById("skill-key-guide-0").style.visibility = "hidden";
 		superJumpCoolTime = initSuperJumpCoolTime;
 	}
 }

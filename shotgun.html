@@ -14,7 +14,7 @@
                 z-index: 2; 
                 visibility: hidden;
                 background: #cfcfcf;
-                background: rgba(0, 0, 0, 0.6);
+                background: rgba(0, 0, 0, 0.3);
             }
             #ui-skill {
                 position: absolute;
@@ -41,12 +41,33 @@
                 z-index: 5;
                 visibility: hidden;
             }
-            #cool-time-text {
+            #cool-time-text-0 {
+                margin-bottom: 0px;
                 width: 100%; height: 100%;
+                position: absolute;
+                bottom: 0;
                 text-align: center;
-                font-size: 30px;
+                font-size: 20px;
                 vertical-align: middle;
                 color: white;
+                visibility: hidden;
+            }
+            #skill-key-guide-0 {
+                margin-bottom: 0px;
+                width: 100%; height: 100%;
+                position: absolute;
+                bottom: 0;
+                text-align: center;
+                font-size: 20px;
+                vertical-align: middle;
+                color: white;
+            }
+            #ui-group-skill-0 {
+                width: 100; height: 30;
+                position: absolute;
+                bottom: 100;
+                background: #cfcfcf;
+                background: rgba(0, 0, 0, 0.6);
             }
             h1 {text-align: center;}
             h2 {text-align: center;}
@@ -63,9 +84,10 @@
                 <h2 style="color: white">Press "Space" key to respawn.</h2>
             </div>
             <div id="ui-skill">
+                <div id="ui-group-skill-0"><p id="skill-key-guide-0">E</p><p id="cool-time-text-0">10</p></div> 
                 <img id="skill-jump" src="img/jump.png" alt="jump" width="80" height="80">
                 <img id="skill-back-0" src="img/backplate.png" alt="backplate" width="100" height="100">
-                <div id="cool-down-timer-0"><p id="cool-time-text">10</p></div>
+                <div id="cool-down-timer-0"></div>
             </div>
         </div>
     </body>

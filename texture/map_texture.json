@@ -39,10 +39,6 @@ map_texture = {
         {
             "target_index": 22,
             "path": "./texture/crate.gif"
-        },
-        {
-            "target_index": 23,
-            "path": "./texture/crate.gif"
         }
         
        
