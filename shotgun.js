@@ -8,6 +8,7 @@ var sprintRatio = 2;
 var isSprinting = false;
 var isPointerLocked = false;
 var player;
+var respawnPosition = {x: 0, y: 2, z: 0};
 
 var deathCount = 0;
 var isPlayerAlive = true;
@@ -115,11 +116,10 @@ window.onload = function init()
 		function ( obj ) {
 			// Add the loaded object to the scene
 			for(i=0;i<obj.children.length;i++){
-				createStep(obj.children[i])
+				createStep(obj.children[i]);
 			}
 			
 			loadMapTexture();
-			
 		},
 		// onProgress callback
 		function ( xhr ) {
@@ -142,6 +142,7 @@ window.onload = function init()
 	setMousePointerLock();
 
 	loadModelMap();
+
 
 	function render() {
 		const dt = clock.getDelta();
@@ -198,7 +199,11 @@ window.onload = function init()
 		body.position.copy(obj.position)
 		body.quaternion.set(obj.quaternion.x, obj.quaternion.y, obj.quaternion.z,obj.quaternion.w)
 		world.addBody(body);
-		//floorBodyList.push(planeBody);
+		floorBodyList.push(body);
+		
+		let name = obj.name;
+		if(name == "EndBox" || name == "SaveBox")
+			checkpoint(body, name);
 	}
 }
 
@@ -280,7 +285,7 @@ function setMousePointerLock() {
 
 	document.addEventListener('mousemove', function(event) {
 		if(isPointerLocked) {
-			console.log("x: " + event.movementX + ", y: " + event.movementY);
+			//console.log("x: " + event.movementX + ", y: " + event.movementY);
 			moveCamera(event.movementX, event.movementY);
 		}
 	});
@@ -330,8 +335,6 @@ function getMovingDirection() {
 	var direction = new THREE.Vector3(0, 0, 0);
 	direction.z = (keypressed[0] ? 1 : 0) + (keypressed[2] ? -1 : 0);
 	direction.x = (keypressed[1] ? 1 : 0) + (keypressed[3] ? -1 : 0);
-	if(keypressed[0])
-		console.log(keypressed[0]);
 	return direction;
 }
 
@@ -488,7 +491,7 @@ function checkGameOver() {
 
 function respawn() {
 	if(!isPlayerAlive) {
-		playerBody.position.set(0, 2, 0);
+		playerBody.position.set(respawnPosition.x, respawnPosition.y, respawnPosition.z);
 		isPlayerAlive = true;
 		fadeToAction("Idle", 0.5);
 		document.getElementById('ui-game-over').style.visibility = "hidden";
@@ -573,4 +576,19 @@ function superJumpOnPhysics() {
 	var jumpDirection = getMovingDirection() * getCalculatedSpeed(moveForce);
 	playerBody.applyLocalImpulse(new CANNON.Vec3(jumpDirection.x, superJumpForce, jumpDirection.z), new CANNON.Vec3(0, 0, 0));
 	playerBody.addEventListener("collide", disableJump);
+}
+
+function checkpoint(checkPointBody, type) {
+	checkPointBody.addEventListener("collide", function(e) {
+		if(type == "SaveBox") {
+			respawnPosition.x = e.target.position.x;
+			respawnPosition.y = e.target.position.y + 3;
+			respawnPosition.z = e.target.position.z;
+			console.log("Respawn position saved.");
+		}
+		else if(type == "EndBox") {
+			console.log("Clear Event");
+		}
+		console.log("Collide with check point!");
+	})
 }
