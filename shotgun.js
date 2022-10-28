@@ -1,3 +1,5 @@
+var debug = false;
+
 let container, clock, mixer, actions, activeAction, previousAction, isJumping = false;
 var keypressed = [false, false, false, false] // w, a, s, d
 var jumpSpeed = 0.5;
@@ -8,7 +10,8 @@ var sprintRatio = 2;
 var isSprinting = false;
 var isPointerLocked = false;
 var player;
-var respawnPosition = {x: 0, y: 2, z: 0};
+const initRespawnPosition = {x: 0, y: 2, z: 0};
+var respawnPosition = {x: initRespawnPosition.x, y: initRespawnPosition.y, z: initRespawnPosition.z};
 
 var deathCount = 0;
 var isPlayerAlive = true;
@@ -26,6 +29,7 @@ const playerBody = new CANNON.Body({
 	position: new CANNON.Vec3(0, 2, 0)
 });
 const scene = new THREE.Scene();
+var renderer;
 
 var stepMeshList = [];
 
@@ -35,6 +39,8 @@ var stepBodyList = [];
 const KeyCode = {
 	SHIFT: 16,
 	SPACE: 32,
+	ESC: 27,
+	TAB: 9,
 	W: 87,
 	A: 65,
 	S: 83,
@@ -57,25 +63,17 @@ const api = {state: 'Idle'};
 const states = [ 'Idle', 'Walking', 'Running', 'Dance', 'Death', 'Sitting', 'Standing' ];
 const emotes = [ 'Jump', 'Yes', 'No', 'Wave', 'Punch', 'ThumbsUp' ];
 
+var renderAnim = null;
+var jumpIntervalId = null;
+
 window.onload = function init()
 {
 	const canvas = document.getElementById("gl-canvas");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	const renderer = new THREE.WebGLRenderer({canvas});
+	renderer = new THREE.WebGLRenderer({canvas});
 	renderer.setSize(canvas.width,canvas.height);
-
-	scene.background = new THREE.CubeTextureLoader()
-	.setPath('BG/')
-	.load([
-		'right.jpg',
-		'left.jpg',
-		'top.jpg',
-		'bottom.jpg',
-		'front.jpg',
-		'back.jpg'
-	]);
 
 	camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
 	camera.rotation.y = 45 / 180 * Math.PI;
@@ -85,6 +83,15 @@ window.onload = function init()
 
 	clock = new THREE.Clock();
 
+	initStageSelection();
+	loadTutorialMap();
+
+	setKeyboardInput();
+	setMousePointerLock();
+	
+}
+
+function loadLights() {
 	const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
 	hemiLight.position.set( 0, 20, 0 );
 	scene.add( hemiLight );
@@ -92,119 +99,6 @@ window.onload = function init()
 	const dirLight = new THREE.DirectionalLight( 0xffffff );
 	dirLight.position.set( 0, 20, 10 );
 	scene.add( dirLight );
-
-	setInterval(jump, 1000/jumpSpeed);
-
-	const loader = new THREE.GLTFLoader();
-	loader.load('./model/RobotExpressive.glb', function(gltf){
-		player = gltf.scene.children[0];
-		player.scale.set(1.0, 1.0, 1.0);
-		scene.add(gltf.scene);
-		loadAnimation(player, gltf.animations);
-		render();
-
-	}, undefined, function (error) {
-		console.error(error);
-	});
-
-	const map_loader = new THREE.ObjectLoader();
-	map_loader.load(
-		// resource URL
-		"model/test.json",
-		// onLoad callback
-		// Here the loaded data is assumed to be an object
-		function ( obj ) {
-			// Add the loaded object to the scene
-			for(i=0;i<obj.children.length;i++){
-				createStep(obj.children[i]);
-			}
-			
-			loadMapTexture();
-		},
-		// onProgress callback
-		function ( xhr ) {
-			console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-		},
-
-		// onError callback
-		function ( err ) {
-			console.error( 'An error happened' );
-		}
-	);
-
-	
-
-	createPlayerHitBox();
-	createFloor();
-	initPhysics();
-
-	setKeyboardInput();
-	setMousePointerLock();
-
-	loadModelMap();
-
-
-	function render() {
-		const dt = clock.getDelta();
-		if(mixer) mixer.update(dt);
-
-		world.step(1/60, dt, 3);
-		movePlayer();
-		playerPhysics();
-		setCameraPosition();
-		superJumpCoolDown(dt);
-		requestAnimationFrame(render);
-	
-		renderer.render(scene, camera);
-	}
-
-	function createFloor() {
-		const floorGeometry = new THREE.BoxGeometry(20, 0.1, 20);
-		const floorMesh = new THREE.Mesh(floorGeometry, new THREE.MeshPhongMaterial());
-		floorMesh.receiveShadow = true;
-		scene.add(floorMesh);
-		const floorShape = new CANNON.Box(new CANNON.Vec3(10, 0.05, 10));
-		const floorBody = new CANNON.Body({mass: 0});
-		floorBody.addShape(floorShape);
-		
-		const deathFloorShape = new CANNON.Plane();
-		const deathFloorBody = new CANNON.Body({mass: 0});
-		deathFloorBody.addShape(deathFloorShape);
-		deathFloorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
-		deathFloorBody.position.y = deathDepth - 5;
-
-		world.addBody(floorBody);
-		world.addBody(deathFloorBody);
-
-		floorBodyList.push(floorBody);
-	}
-
-	function createStep(obj) {
-		console.log(obj)
-		const BoxGeometry = new THREE.BoxGeometry(obj.scale.x,obj.scale.y,obj.scale.z);
-		const BoxMesh = new THREE.Mesh(BoxGeometry, new THREE.MeshPhongMaterial());
-		BoxMesh.receiveShadow = true;
-		BoxMesh.position.copy(obj.position)
-		BoxMesh.quaternion.set(obj.quaternion.x, obj.quaternion.y, obj.quaternion.z,obj.quaternion.w)
-		stepMeshList.push(BoxMesh);
-    	scene.add(BoxMesh)
-		const defaultMaterial = new CANNON.Material('default')
-		const BoxShape = new CANNON.Box(new CANNON.Vec3(obj.scale.x*0.5,obj.scale.y*0.5,obj.scale.z*0.5))
-		const body = new CANNON.Body({
-			mass: 0,
-			position: new CANNON.Vec3(obj.position.x,obj.position.y,obj.position.z),
-			shape: BoxShape,
-			material: defaultMaterial
-		})
-		body.position.copy(obj.position)
-		body.quaternion.set(obj.quaternion.x, obj.quaternion.y, obj.quaternion.z,obj.quaternion.w)
-		world.addBody(body);
-		floorBodyList.push(body);
-		
-		let name = obj.name;
-		if(name == "EndBox" || name == "SaveBox")
-			checkpoint(body, name);
-	}
 }
 
 // Load animation from model file(animation parameter)
@@ -375,6 +269,9 @@ function setKeyboardInput() {
 		case KeyCode.SPACE:
 			respawn();
 			break;
+		case KeyCode.TAB:
+			activeStageSelection(true);
+			break;
 		case KeyCode.SHIFT: //space
 			isSprinting = true;
 			break;
@@ -420,11 +317,19 @@ function setKeyboardInput() {
 	};
 }
 
+function disableKeyInput() {
+	for (var i = 0; i < keypressed.length; i++)
+		keypressed[i] = false;
+}
+
 function createPlayerHitBox() {
 	playerBox = new THREE.BoxGeometry(playerSize, playerHeight, playerSize);
 	var playerMaterial = new THREE.MeshPhongMaterial({color: 0x882288});
 	playerMaterial.transparent = true;
-	playerMaterial.opacity = 0.5;
+	if(debug)
+		playerMaterial.opacity = 0.5;
+	else
+		playerMaterial.opacity = 0.0;
 	playerBoxMesh = new THREE.Mesh(playerBox, playerMaterial);
 	scene.add(playerBoxMesh);
 }
@@ -433,6 +338,7 @@ function initPhysics() {
     world.gravity.set(0, -gravity, 0);
 	playerBody.fixedRotation = true;
 	playerBody.addShape(playerShape);
+	playerBody.position.set(respawnPosition.x, respawnPosition.y, respawnPosition.z);
 	world.addBody(playerBody);
 	
 	const playerPhysicsMaterial = new CANNON.Material();
@@ -591,4 +497,193 @@ function checkpoint(checkPointBody, type) {
 		}
 		console.log("Collide with check point!");
 	})
+}
+
+function initStageSelection() {
+	var tutorialButton = document.getElementById("button-stage-tutorial");
+	var mainStageButton = document.getElementById("button-stage-main");
+	var closeStage = document.getElementById("button-close-stage");
+	
+	tutorialButton.addEventListener("click", function() {
+		activeStageSelection(false);
+		loadTutorialMap();
+	});
+	mainStageButton.addEventListener("click", function() {
+		activeStageSelection(false);
+		loadMainStageMap();
+	});
+	closeStage.addEventListener("click", function() {
+		activeStageSelection(false);
+	});
+}
+
+function activeStageSelection(active) {
+	var stageContainer = document.getElementById("ui-select-stage");
+	
+	if(active) {
+		stageContainer.style.visibility = "visible";
+		disableKeyInput();
+		document.exitPointerLock();
+	}
+	else {
+		stageContainer.style.visibility = "hidden";
+	}
+}
+
+function clearScene() {
+	scene.remove.apply(scene, scene.children);
+}
+
+function resetRespawn() {
+	respawnPosition.x = initRespawnPosition.x;
+	respawnPosition.y = initRespawnPosition.y; 
+	respawnPosition.z = initRespawnPosition.z;
+}
+
+function resetOthers() {
+	superJumpCoolDown(initSuperJumpCoolTime);
+
+	phi = init_phi;
+	theta = init_theta;
+
+	stepMeshList = [];
+	floorBodyList = [];
+	stepBodyList = [];
+}
+
+function loadPlayer() {
+	if(renderAnim != null)
+		cancelAnimationFrame(renderAnim);
+
+	const loader = new THREE.GLTFLoader();
+	loader.load('./model/RobotExpressive.glb', function(gltf){
+		player = gltf.scene.children[0];
+		player.scale.set(1.0, 1.0, 1.0);
+		scene.add(gltf.scene);
+		loadAnimation(player, gltf.animations);
+		render();
+
+	}, undefined, function (error) {
+		console.error(error);
+	});
+}
+
+function loadTutorialMap() {
+	clearScene();
+	resetOthers();
+	resetRespawn();
+	loadPlayer();
+
+	scene.background = new THREE.CubeTextureLoader()
+	.setPath('BG/')
+	.load([
+		'right.jpg',
+		'left.jpg',
+		'top.jpg',
+		'bottom.jpg',
+		'front.jpg',
+		'back.jpg'
+	]);
+	
+	const map_loader = new THREE.ObjectLoader();
+	map_loader.load(
+		// resource URL
+		"model/test.json",
+		// onLoad callback
+		// Here the loaded data is assumed to be an object
+		function ( obj ) {
+			// Add the loaded object to the scene
+			for(i=0;i<obj.children.length;i++){
+				createStep(obj.children[i]);
+			}
+			
+			loadMapTexture();
+		},
+		// onProgress callback
+		function ( xhr ) {
+			console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+		},
+
+		// onError callback
+		function ( err ) {
+			console.error( 'An error happened' );
+		}
+	);
+
+	if(jumpIntervalId != null)
+		clearInterval(jumpIntervalId);
+	jumpIntervalId = setInterval(jump, 1000/jumpSpeed);
+	
+	loadLights();
+	createPlayerHitBox();
+	createFloor();
+	initPhysics();
+	loadModelMap();	
+	// TODO: tutorial 맵을 불러오는 함수들 모두 여기에 모아보기.
+}
+
+function loadMainStageMap() {
+	console.log("load main stage map");
+}
+
+function render() {
+	const dt = clock.getDelta();
+	if(mixer) mixer.update(dt);
+
+	world.step(1/60, dt, 3);
+	movePlayer();
+	playerPhysics();
+	setCameraPosition();
+	superJumpCoolDown(dt);
+	renderAnim = requestAnimationFrame(render);
+
+	renderer.render(scene, camera);
+}
+
+function createFloor() {
+	const floorGeometry = new THREE.BoxGeometry(20, 0.1, 20);
+	const floorMesh = new THREE.Mesh(floorGeometry, new THREE.MeshPhongMaterial());
+	floorMesh.receiveShadow = true;
+	scene.add(floorMesh);
+	const floorShape = new CANNON.Box(new CANNON.Vec3(10, 0.05, 10));
+	const floorBody = new CANNON.Body({mass: 0});
+	floorBody.addShape(floorShape);
+	
+	const deathFloorShape = new CANNON.Plane();
+	const deathFloorBody = new CANNON.Body({mass: 0});
+	deathFloorBody.addShape(deathFloorShape);
+	deathFloorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
+	deathFloorBody.position.y = deathDepth - 5;
+
+	world.addBody(floorBody);
+	world.addBody(deathFloorBody);
+
+	floorBodyList.push(floorBody);
+}
+
+function createStep(obj) {
+	console.log(obj)
+	const BoxGeometry = new THREE.BoxGeometry(obj.scale.x,obj.scale.y,obj.scale.z);
+	const BoxMesh = new THREE.Mesh(BoxGeometry, new THREE.MeshPhongMaterial());
+	BoxMesh.receiveShadow = true;
+	BoxMesh.position.copy(obj.position)
+	BoxMesh.quaternion.set(obj.quaternion.x, obj.quaternion.y, obj.quaternion.z,obj.quaternion.w)
+	stepMeshList.push(BoxMesh);
+	scene.add(BoxMesh)
+	const defaultMaterial = new CANNON.Material('default')
+	const BoxShape = new CANNON.Box(new CANNON.Vec3(obj.scale.x*0.5,obj.scale.y*0.5,obj.scale.z*0.5))
+	const body = new CANNON.Body({
+		mass: 0,
+		position: new CANNON.Vec3(obj.position.x,obj.position.y,obj.position.z),
+		shape: BoxShape,
+		material: defaultMaterial
+	})
+	body.position.copy(obj.position)
+	body.quaternion.set(obj.quaternion.x, obj.quaternion.y, obj.quaternion.z,obj.quaternion.w)
+	world.addBody(body);
+	floorBodyList.push(body);
+	
+	let name = obj.name;
+	if(name == "EndBox" || name == "SaveBox")
+		checkpoint(body, name);
 }

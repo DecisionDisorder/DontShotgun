@@ -19,7 +19,7 @@
             #ui-skill {
                 position: absolute;
                 left: 50%; bottom:0;
-                width: 100%; height: 100%;
+                width: 50%; height: 100%;
                 z-index: 3;
             }
             #skill-back-0 {
@@ -69,13 +69,39 @@
                 background: #cfcfcf;
                 background: rgba(0, 0, 0, 0.6);
             }
+            #ui-select-stage {
+                width: 100%; height: 100%;
+                position: absolute;
+                background: #cfcfcf;
+                background: rgba(0, 0, 0, 0.6);
+                text-align: center;
+                visibility: hidden;
+                z-index: 4;
+            }
+            .button-stage {
+                width: 300; height: 300;
+                margin: 30px;
+                position: relative;
+                top: 20%;
+            }
+            #button-close-stage {
+                width: 100; height: 60;
+                position: relative;
+                bottom: -20%;
+            }
+            .title-text {
+                position: relative;
+                top: 10%;
+                color: white;
+            }
+            
             h1 {text-align: center;}
             h2 {text-align: center;}
         </style>
     </head>
     <body>
         <div style="position: relative; height: 100%">
-            <canvas id="gl-canvas" width="1920" height="1080" style="position: absolute; z-index: 1;">
+            <canvas id="gl-canvas" width="100%" height="100%" style="position: absolute; z-index: 1;">
                 Oops ... your browser doesn't support the HTML5 canvas element
             </canvas>
             <div id="ui-game-over">
@@ -88,6 +114,13 @@
                 <img id="skill-jump" src="img/jump.png" alt="jump" width="80" height="80">
                 <img id="skill-back-0" src="img/backplate.png" alt="backplate" width="100" height="100">
                 <div id="cool-down-timer-0"></div>
+            </div>
+            <div id="ui-select-stage">
+                <h1 class="title-text">Select Stage</h2>
+                <button class="button-stage" id="button-stage-tutorial">Tutorial</button>
+                <button class="button-stage" id="button-stage-main">Main Stage</button>
+                <br/>
+                <button id="button-close-stage">Close</button>
             </div>
         </div>
     </body>
