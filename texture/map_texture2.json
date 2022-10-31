@@ -1,0 +1,38 @@
+map_texture2 = {
+    "data": [
+        {
+            "target_index": 0,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 1,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 2,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 3,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 4,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 5,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 6,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 7,
+            "path": "./texture/asteroid.png"
+        }
+        
+       
+    ]
+}
