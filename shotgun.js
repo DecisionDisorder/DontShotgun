@@ -624,7 +624,57 @@ function loadTutorialMap() {
 }
 
 function loadMainStageMap() {
-	console.log("load main stage map");
+	clearScene();
+    resetOthers();
+    resetRespawn();
+    loadPlayer();
+
+    scene.background = new THREE.CubeTextureLoader()
+    .setPath('space/')
+    .load([
+        'px.png',
+        'nx.png',
+        'py.png',
+        'ny.png',
+        'pz.png',
+        'nz.png'
+    ]);
+    
+    const map_loader = new THREE.ObjectLoader();
+    map_loader.load(
+        // resource URL
+        "model/main.json",
+        // onLoad callback
+        // Here the loaded data is assumed to be an object
+        function ( obj ) {
+            // Add the loaded object to the scene
+            for(i=0;i<obj.children.length;i++){
+                createStep(obj.children[i]);
+            }
+            
+            loadMapTexture();
+        },
+        // onProgress callback
+        function ( xhr ) {
+            console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+        },
+
+        // onError callback
+        function ( err ) {
+            console.error( 'An error happened' );
+        }
+    );
+
+    if(jumpIntervalId != null)
+        clearInterval(jumpIntervalId);
+    jumpIntervalId = setInterval(jump, 1000/jumpSpeed);
+    
+    loadLights();
+    createPlayerHitBox();
+    createFloor();
+    initPhysics();
+    loadModelMap(); 
+
 }
 
 function render() {
