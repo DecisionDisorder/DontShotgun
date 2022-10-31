@@ -748,30 +748,34 @@ function createStep(obj) {
 }
 
 function addObsctacleEvent(obj, body) {
-	if(checkNeedCollideListener(obj)) {
+	let index = getEventObstacleIndex(obj);
+	if(index >= 0) {
 		let eventObstacle = JSON.parse(JSON.stringify(event_obstacle));
 
 		body.addEventListener("collide", function() {	
-			for (var i = 0; i < eventObstacle.set.length; i++) {
-				for(var j = 0; j < stepObjList.length; j++) {
-					if(stepObjList[j].uuid == eventObstacle.set[i].obstacle.uuid) {
-						stepObjList[j].body.mass = 1;
-						break;
-					}
-				}
-			}
+			setInterval(function() {fallObstacle(index)}, eventObstacle.set[index].obstacle.delay);
 		});
 	}
 }
 
-function checkNeedCollideListener(obj) {
+function fallObstacle(obstacleIndex) {
+	let eventObstacle = JSON.parse(JSON.stringify(event_obstacle));
+	for(var j = 0; j < stepObjList.length; j++) {
+		if(stepObjList[j].uuid == eventObstacle.set[obstacleIndex].obstacle.uuid) {
+			stepObjList[j].body.mass = 1;
+			break;
+		}
+	}
+}
+
+function getEventObstacleIndex(obj) {
 	let eventObstacle = JSON.parse(JSON.stringify(event_obstacle));
 	for(var i = 0; i < eventObstacle.set.length; i++) {
 		if(obj.uuid == eventObstacle.set[i].step.uuid)
-			return true;
+			return i;
 	}
 
-	return false;
+	return -1;
 }
 
 class StepObject {
