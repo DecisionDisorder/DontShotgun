@@ -19,6 +19,7 @@ var isPlayerAlive = true;
 var playerSize = 3;
 var playerHeight = 4.5;
 
+var pause = false;
 const gravity = 25;
 const deathDepth = -20;
 
@@ -193,18 +194,18 @@ function setMousePointerLock() {
 }
 
 // 달리기 여부에 따른 스피드 계산
-function getCalculatedSpeed(speed) {
+function getCalculatedSpeed(speed, deltaTime) {
 	if(isSprinting) 
-		return sprintRatio * speed;
+		return sprintRatio * speed * (deltaTime / (1 / 60));
 	else
-		return speed;
+		return speed * (deltaTime / (1 / 60));
 }
 
-function movePlayer() {
+function movePlayer(deltaTime) {
 	if(isPlayerAlive) {
 		var movingDirection = getMovingDirection();
-		var calculatedMoveForce = getCalculatedSpeed(moveForce);
-		var calculatedMoveSpeed = getCalculatedSpeed(moveSpeed);
+		var calculatedMoveForce = getCalculatedSpeed(moveForce, deltaTime);
+		var calculatedMoveSpeed = getCalculatedSpeed(moveSpeed, deltaTime);
 		if(isJumping) {
 			playerBody.applyLocalForce(new CANNON.Vec3(movingDirection.x * calculatedMoveForce, 0, movingDirection.z * calculatedMoveForce), new CANNON.Vec3(0, 0, 0));
 		}
@@ -524,11 +525,13 @@ function activeStageSelection(active) {
 	var stageContainer = document.getElementById("ui-select-stage");
 	
 	if(active) {
+		pause = true;
 		stageContainer.style.visibility = "visible";
 		disableKeyInput();
 		document.exitPointerLock();
 	}
 	else {
+		pause = false;
 		stageContainer.style.visibility = "hidden";
 	}
 }
@@ -680,10 +683,12 @@ function loadMainStageMap() {
 
 function render() {
 	const dt = clock.getDelta();
-	if(mixer) mixer.update(dt);
 
-	world.step(1/60, dt, 3);
-	movePlayer();
+	if(!pause) {
+		if(mixer) mixer.update(dt);
+		world.step(1/60, dt, 3);
+	}
+	movePlayer(dt);
 	playerPhysics();
 	setCameraPosition();
 	superJumpCoolDown(dt);
