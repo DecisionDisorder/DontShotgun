@@ -31,9 +31,6 @@ const playerBody = new CANNON.Body({
 const scene = new THREE.Scene();
 var renderer;
 
-var stepMeshList = [];
-
-//var floorBodyList = [];
 var stepBodyList = [];
 var stepObjList = [];
 
@@ -435,8 +432,12 @@ function loadModelMap() {
 	}
 }
 
-function loadMapTexture() {
-	let mapTextureData = JSON.parse(JSON.stringify(map_texture));
+function loadMapTexture(mapCategory) {
+	let mapTextureData;
+	if(mapCategory == "Tutorial")
+		mapTextureData = JSON.parse(JSON.stringify(map_texture_tutorial));
+	else if(mapCategory = "Main")
+		mapTextureData = JSON.parse(JSON.stringify(map_texture_main));
 
 	for(var i = 0; i < mapTextureData.data.length; i++) {
 		var targetIndex = mapTextureData.data[i].target_index;
@@ -444,7 +445,7 @@ function loadMapTexture() {
 
 		const texture = new THREE.TextureLoader().load(texturePath);
 		const material = new THREE.MeshBasicMaterial({map: texture});
-		stepMeshList[targetIndex].material = material;
+		stepObjList[targetIndex].mesh.material = material;
 	}
 }
 
@@ -548,7 +549,7 @@ function resetOthers() {
 	phi = init_phi;
 	theta = init_theta;
 
-	stepMeshList = [];
+	stepObjList = [];
 	floorBodyList = [];
 }
 
@@ -598,7 +599,7 @@ function loadTutorialMap() {
 				createStep(obj.children[i]);
 			}
 			
-			loadMapTexture();
+			loadMapTexture("Tutorial");
 		},
 		// onProgress callback
 		function ( xhr ) {
@@ -652,7 +653,7 @@ function loadMainStageMap() {
                 createStep(obj.children[i]);
             }
             
-            loadMapTexture();
+            loadMapTexture("Main");
         },
         // onProgress callback
         function ( xhr ) {
@@ -709,7 +710,6 @@ function createFloor() {
 	world.addBody(floorBody);
 	world.addBody(deathFloorBody);
 
-	//floorBodyList.push(floorBody);
 	stepObjList.push(new StepObject("", floorMesh, floorBody));
 
 }
@@ -721,7 +721,6 @@ function createStep(obj) {
 	BoxMesh.receiveShadow = true;
 	BoxMesh.position.copy(obj.position)
 	BoxMesh.quaternion.set(obj.quaternion.x, obj.quaternion.y, obj.quaternion.z,obj.quaternion.w)
-	stepMeshList.push(BoxMesh);
 	scene.add(BoxMesh)
 	const defaultMaterial = new CANNON.Material('default')
 	const BoxShape = new CANNON.Box(new CANNON.Vec3(obj.scale.x*0.5,obj.scale.y*0.5,obj.scale.z*0.5))
