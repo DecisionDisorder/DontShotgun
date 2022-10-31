@@ -33,8 +33,9 @@ var renderer;
 
 var stepMeshList = [];
 
-var floorBodyList = [];
+//var floorBodyList = [];
 var stepBodyList = [];
+var stepObjList = [];
 
 const KeyCode = {
 	SHIFT: 16,
@@ -354,7 +355,8 @@ function initPhysics() {
 
 	world.addContactMaterial(playerFloorContactMaterial);
 	playerBody.material = playerPhysicsMaterial;
-	floorBodyList[0].material = floorPhysicsMaterial;
+	//floorBodyList[0].material = floorPhysicsMaterial;
+	stepObjList[0].body.material = floorPhysicsMaterial;
 }
 
 function playerPhysics() {
@@ -548,7 +550,6 @@ function resetOthers() {
 
 	stepMeshList = [];
 	floorBodyList = [];
-	stepBodyList = [];
 }
 
 function loadPlayer() {
@@ -658,7 +659,9 @@ function createFloor() {
 	world.addBody(floorBody);
 	world.addBody(deathFloorBody);
 
-	floorBodyList.push(floorBody);
+	//floorBodyList.push(floorBody);
+	stepObjList.push(new StepObject("", floorMesh, floorBody));
+
 }
 
 function createStep(obj) {
@@ -681,9 +684,46 @@ function createStep(obj) {
 	body.position.copy(obj.position)
 	body.quaternion.set(obj.quaternion.x, obj.quaternion.y, obj.quaternion.z,obj.quaternion.w)
 	world.addBody(body);
-	floorBodyList.push(body);
+	stepObjList.push(new StepObject(obj.uuid, BoxMesh, body));
+
+	addObsctacleEvent(obj, body);
 	
 	let name = obj.name;
 	if(name == "EndBox" || name == "SaveBox")
 		checkpoint(body, name);
+}
+
+function addObsctacleEvent(obj, body) {
+	if(checkNeedCollideListener(obj)) {
+		let eventObstacle = JSON.parse(JSON.stringify(event_obstacle));
+
+		body.addEventListener("collide", function() {	
+			for (var i = 0; i < eventObstacle.set.length; i++) {
+				for(var j = 0; j < stepObjList.length; j++) {
+					if(stepObjList[j].uuid == eventObstacle.set[i].obstacle.uuid) {
+						stepObjList[j].body.mass = 1;
+						break;
+					}
+				}
+			}
+		});
+	}
+}
+
+function checkNeedCollideListener(obj) {
+	let eventObstacle = JSON.parse(JSON.stringify(event_obstacle));
+	for(var i = 0; i < eventObstacle.set.length; i++) {
+		if(obj.uuid == eventObstacle.set[i].step.uuid)
+			return true;
+	}
+
+	return false;
+}
+
+class StepObject {
+	constructor (uuid, mesh, body) {
+		this.uuid = uuid;
+		this.mesh = mesh;
+		this.body = body;
+	}
 }

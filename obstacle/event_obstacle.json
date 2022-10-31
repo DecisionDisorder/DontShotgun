@@ -1,0 +1,23 @@
+event_obstacle = {
+    "set": [
+        {
+            "step": {
+                "uuid": ""
+            }, 
+            "obstacle": {
+                "uuid": "",
+                "delay": ""
+            }
+        },
+        {
+            "step": {
+                "uuid": ""
+            }, 
+            "obstacle": {
+                "uuid": "",
+                "delay": ""
+            }
+        }
+    ]
+    
+}
