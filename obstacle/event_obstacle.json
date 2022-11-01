@@ -2,20 +2,11 @@ event_obstacle = {
     "set": [
         {
             "step": {
-                "uuid": ""
+                "uuid": "aaba57f5-085b-4ad0-bdd7-eeda53f8f723"
             }, 
             "obstacle": {
-                "uuid": "",
-                "delay": ""
-            }
-        },
-        {
-            "step": {
-                "uuid": ""
-            }, 
-            "obstacle": {
-                "uuid": "",
-                "delay": ""
+                "uuid": "17f64c57-aded-41b0-8ffa-10afb89e0f43",
+                "delay": "500"
             }
         }
     ]
