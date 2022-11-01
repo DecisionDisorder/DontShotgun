@@ -5,7 +5,7 @@ event_obstacle = {
                 "uuid": "aaba57f5-085b-4ad0-bdd7-eeda53f8f723"
             }, 
             "obstacle": {
-                "uuid": "8bcfad7c-7522-41f0-b3cd-5b7538603499",
+                "uuid": "17f64c57-aded-41b0-8ffa-10afb89e0f43",
                 "delay": "500"
             }
         }
