@@ -440,6 +440,12 @@ function playerPhysics() {
 function checkGameOver() {
 	// 
 	if(playerBody.position.y < deathDepth && isPlayerAlive) {
+		death();
+	}
+}
+
+function death() {
+	if(isPlayerAlive){
 		isPlayerAlive = false;
 		deathCount++;
 		restoreState();
@@ -634,6 +640,8 @@ function activeStageSelection(active) {
 // 
 function clearScene() {
 	scene.remove.apply(scene, scene.children);
+	for (var i = 0; i < world.bodies.length; i++)
+		world.remove(world.bodies[i]);
 }
 
 // 
@@ -733,6 +741,8 @@ function loadTutorialMap() {
 	createFloor();
 	initPhysics();
 	loadModelMap();	
+	
+	console.log("body length: " + world.bodies.length);
 }
 
 // 
@@ -793,6 +803,7 @@ function loadMainStageMap() {
     initPhysics();
     loadModelMap(); 
 
+	console.log("body length: " + world.bodies.length);
 }
 
 // 
@@ -841,7 +852,7 @@ function createFloor() {
 	world.addBody(deathFloorBody);
 
 	// 
-	stepObjList.push(new StepObject("", floorMesh, floorBody));
+	stepObjList.push(new StepObject("first_floor", floorMesh, floorBody));
 }
 
 // 
@@ -885,25 +896,74 @@ function addObsctacleEvent(obj, body) {
 	if(index >= 0) {
 		// 
 		let eventObstacle = JSON.parse(JSON.stringify(event_obstacle));
+		let count = 0;
 
 		// 
-		body.addEventListener("collide", function() {	
-			setInterval(function() {fallObstacle(index)}, eventObstacle.set[index].obstacle.delay);
+		body.addEventListener("collide", function(e) {
+			if(e.body.type == 1){
+				if(count < 1) {
+					count = 1;
+					setTimeout(fallObstacle, Number(eventObstacle.set[index].obstacle.delay), index, body, count);
+				}
+			}
 		});
 	}
 }
 
 // 
-function fallObstacle(obstacleIndex) {
+function fallObstacle(obstacleIndex, eventBody, count) {
 	// 
 	let eventObstacle = JSON.parse(JSON.stringify(event_obstacle));
 	for(var j = 0; j < stepObjList.length; j++) {
 		// 
 		if(stepObjList[j].uuid == eventObstacle.set[obstacleIndex].obstacle.uuid) {
-			stepObjList[j].body.mass = 1;
+			const originalPosition = { x: stepObjList[j].body.position.x, y: stepObjList[j].body.position.y, z: stepObjList[j].body.position.z };
+			stepObjList[j].body.force.set(0, 0, 0);
+			stepObjList[j].body.velocity.set(0, 0, 0);
+			stepObjList[j].body.type = CANNON.Body.DYNAMIC;
+			stepObjList[j].body.mass = 10;
+			stepObjList[j].body.updateMassProperties();
+			stepObjList[j].body.addEventListener("collide", function(e) {
+				if(e.body.type == 1)
+					death();
+			});
+			followFallingObstacle(stepObjList[j], eventBody, originalPosition, count);
 			break;
 		}
 	}
+}
+
+function syncObjects(stepObject) {
+	stepObject.mesh.position.set(
+		stepObject.body.position.x,
+		stepObject.body.position.y,
+		stepObject.body.position.z
+	);
+
+	stepObject.mesh.quaternion.set(
+		stepObject.body.quaternion.x,
+		stepObject.body.quaternion.y,
+		stepObject.body.quaternion.z,
+		stepObject.body.quaternion.w,
+	);
+}
+
+function followFallingObstacle(stepObject, eventBody, originalPosition, count) {
+	syncObjects(stepObject);
+
+	if(eventBody.position.y - 10 <= stepObject.body.position.y && (stepObject.body.position.y > originalPosition.y - 10 || stepObject.body.velocity.y < -0.1))
+		requestAnimationFrame(function() {followFallingObstacle(stepObject, eventBody, originalPosition, count);});
+	else {
+		stepObject.body.mass = 0;
+		stepObject.body.type = CANNON.Body.STATIC;
+		stepObject.body.velocity.set(0, 0, 0);
+		stepObject.body.updateMassProperties();
+		stepObject.body.position.set(originalPosition.x, originalPosition.y, originalPosition.z);
+		stepObject.body.quaternion.set(0, 0, 0, 0);
+		count = 0;
+		syncObjects(stepObject);
+	}
+		
 }
 
 // 
