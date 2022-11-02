@@ -741,8 +741,6 @@ function loadTutorialMap() {
 	createFloor();
 	initPhysics();
 	loadModelMap();	
-	
-	console.log("body length: " + world.bodies.length);
 }
 
 // 
@@ -802,8 +800,6 @@ function loadMainStageMap() {
     createFloor();
     initPhysics();
     loadModelMap(); 
-
-	console.log("body length: " + world.bodies.length);
 }
 
 // 
@@ -896,13 +892,14 @@ function addObsctacleEvent(obj, body) {
 	if(index >= 0) {
 		// 
 		let eventObstacle = JSON.parse(JSON.stringify(event_obstacle));
-		let count = 0;
+		let count = {value: 0};
 
 		// 
 		body.addEventListener("collide", function(e) {
 			if(e.body.type == 1){
-				if(count < 1) {
-					count = 1;
+				if(count.value < 1) {
+					count.value = 1;
+					console.log("count: " + count.value);
 					setTimeout(fallObstacle, Number(eventObstacle.set[index].obstacle.delay), index, body, count);
 				}
 			}
@@ -918,6 +915,7 @@ function fallObstacle(obstacleIndex, eventBody, count) {
 		// 
 		if(stepObjList[j].uuid == eventObstacle.set[obstacleIndex].obstacle.uuid) {
 			const originalPosition = { x: stepObjList[j].body.position.x, y: stepObjList[j].body.position.y, z: stepObjList[j].body.position.z };
+			stepObjList[j].body.allowSleep = false;
 			stepObjList[j].body.force.set(0, 0, 0);
 			stepObjList[j].body.velocity.set(0, 0, 0);
 			stepObjList[j].body.type = CANNON.Body.DYNAMIC;
@@ -950,6 +948,7 @@ function syncObjects(stepObject) {
 
 function followFallingObstacle(stepObject, eventBody, originalPosition, count) {
 	syncObjects(stepObject);
+	//console.log("body force: " + stepObject.body.force + "/ body velocity: " + stepObject.body.velocity);
 
 	if(eventBody.position.y - 10 <= stepObject.body.position.y && (stepObject.body.position.y > originalPosition.y - 10 || stepObject.body.velocity.y < -0.1))
 		requestAnimationFrame(function() {followFallingObstacle(stepObject, eventBody, originalPosition, count);});
@@ -957,10 +956,11 @@ function followFallingObstacle(stepObject, eventBody, originalPosition, count) {
 		stepObject.body.mass = 0;
 		stepObject.body.type = CANNON.Body.STATIC;
 		stepObject.body.velocity.set(0, 0, 0);
-		stepObject.body.updateMassProperties();
 		stepObject.body.position.set(originalPosition.x, originalPosition.y, originalPosition.z);
 		stepObject.body.quaternion.set(0, 0, 0, 0);
-		count = 0;
+		//count.value = 0;
+		stepObject.body.updateMassProperties();
+		console.log("count: " + count.value);
 		syncObjects(stepObject);
 	}
 		
