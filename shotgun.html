@@ -83,6 +83,7 @@
             .button-stage {
                 width: 300; height: 300;
                 margin: 30px;
+                padding: 0;
                 position: relative;
                 top: 20%;
             }
@@ -96,7 +97,12 @@
                 top: 10%;
                 color: white;
             }
-            
+            .stage-icon {
+                width: 296;
+                height: 296;
+                margin: 0;
+            }
+
             h1 {text-align: center;}
             h2 {text-align: center;}
         </style>
@@ -119,8 +125,8 @@
             </div>
             <div id="ui-select-stage">
                 <h1 class="title-text">Select Stage</h2>
-                <button class="button-stage" id="button-stage-tutorial">Tutorial</button>
-                <button class="button-stage" id="button-stage-main">Main Stage</button>
+                <button class="button-stage" id="button-stage-tutorial"><img class="stage-icon" src="./img/tutorial_icon.png" ></button>
+                <button class="button-stage" id="button-stage-main"><img class="stage-icon" src="./img/mainstage_icon.png"></button>
                 <br/>
                 <button id="button-close-stage">Close</button>
             </div>
