@@ -474,8 +474,8 @@ function loadModelMap() {
 
 	// 
 	for(var i = 0; i < mapData.model.length; i++) {
-		var modelPos = mapData.model[i].position;	// 
-		var modelScale = mapData.model[i].scale;	// 
+		let modelPos = mapData.model[i].position;	// 
+		let modelScale = mapData.model[i].scale;	// 
 		var modelPath = mapData.model[i].path;		// 
 
 		// 
