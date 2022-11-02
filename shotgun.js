@@ -103,6 +103,8 @@ window.onload = function init()
 	//
 	setKeyboardInput();
 	setMousePointerLock();
+	
+	activeStageSelection(true);
 }
 
 // 
