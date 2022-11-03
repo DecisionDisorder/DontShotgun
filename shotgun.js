@@ -19,6 +19,8 @@ var respawnPosition = {							// Respawn position (can be changed) and initializ
 	z: initRespawnPosition.z
 };
 
+var currentStage = 0;		// Current stage (Tutorial: 0, Main stage: 1)
+
 var deathCount = 0;			// Death count of player
 var isPlayerAlive = true;	// Whether player is alive
 
@@ -77,7 +79,7 @@ var jumpIntervalId = null;			// Jump interval id
 
 window.onload = function init()
 {
-	// Load and set canvas
+	// Load and set canvas size
 	const canvas = document.getElementById("gl-canvas");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
@@ -200,7 +202,8 @@ function fadeToAction(name, duration) {
 function setMousePointerLock() {
 	// 
 	document.addEventListener('click', function(event) {
-		document.body.requestPointerLock();
+		if(!pause)
+			document.body.requestPointerLock();
 	});
 
 	// 
@@ -332,6 +335,9 @@ function setKeyboardInput() {
 			break;
 		case KeyCode.E:			// 
 			superJumpSkill();
+			break;
+		case 13:
+			stageClear();
 			break;
 		}
 	};
@@ -591,10 +597,23 @@ function checkpoint(checkPointBody, type) {
 		}
 		// 
 		else if(type == "EndBox") {
+			stageClear();
 			console.log("Clear Event");
 		}
 		console.log("Collide with check point!");
 	})
+}
+
+function stageClear() {
+	const gameClearUI = document.getElementById("ui-stage-clear");
+	const gameClearText = document.getElementById("text-game-clear");
+	gameClearUI.style.visibility = "visible";
+	if(currentStage == 0) {
+		gameClearText.innerText = "Tutuial Cleared!\nPress TAB to play main stage";
+	}
+	else {
+		gameClearText.innerText = "Congratulations!\nYou cleared the game!";
+	}
 }
 
 // 
@@ -689,6 +708,7 @@ function loadPlayer() {
 // 
 function loadTutorialMap() {
 	// 
+	currentStage = 0;
 	clearScene();
 	resetOthers();
 	resetRespawn();
@@ -743,11 +763,14 @@ function loadTutorialMap() {
 	createFloor();
 	initPhysics();
 	loadModelMap();	
+	
+	document.getElementById("ui-stage-clear").style.visibility = "hidden";
 }
 
 // 
 function loadMainStageMap() {
 	// 
+	currentStage = 1;
 	clearScene();
     resetOthers();
     resetRespawn();
@@ -802,6 +825,8 @@ function loadMainStageMap() {
     createFloor();
     initPhysics();
     loadModelMap(); 
+	
+	document.getElementById("ui-stage-clear").style.visibility = "hidden";
 }
 
 // 

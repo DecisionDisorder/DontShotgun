@@ -102,6 +102,18 @@
                 height: 296;
                 margin: 0;
             }
+            #ui-stage-clear {
+                width: 100%; height: 100%;
+                text-align: center;
+                position: absolute;
+                background: #cfcfcf;
+                background: rgba(255, 255, 255, 0.7);
+                visibility: hidden;
+                z-index: 3;
+            }
+            #text-game-clear {
+                color: black;
+            }
 
             h1 {text-align: center;}
             h2 {text-align: center;}
@@ -129,6 +141,10 @@
                 <button class="button-stage" id="button-stage-main"><img class="stage-icon" src="./img/mainstage_icon.png"></button>
                 <br/>
                 <button id="button-close-stage">Close</button>
+            </div>
+            <div id="ui-stage-clear">
+                <br><br><br><br>
+                <h1 id="text-game-clear"></h1>
             </div>
         </div>
     </body>
