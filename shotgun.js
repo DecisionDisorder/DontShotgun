@@ -612,7 +612,7 @@ function stageClear() {
 		gameClearText.innerText = "Tutuial Cleared!\nPress TAB to play main stage";
 	}
 	else {
-		gameClearText.innerText = "Congratulations!\nYou cleared the game!";
+		gameClearText.innerText = "Game Clear!";
 	}
 }
 
