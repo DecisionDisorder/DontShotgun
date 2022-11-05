@@ -43,8 +43,10 @@ There are two ways to play the game.
 - CANNON.js
 
 ## External Resource Source
-- [THREE.js]            https://github.com/mrdoob/three.js
-- [CANNON.js]           https://github.com/schteppe/cannon.js
-- [RobotExpressive.glb] https://github.com/mrdoob/three.js/tree/master/examples/models/gltf/RobotExpressive
-- [SheenChair.glb]      https://github.com/mrdoob/three.js/blob/master/examples/models/gltf/SheenChair.glb
-- [crate.gif]           https://github.com/mrdoob/three.js/blob/master/examples/textures/crate.gif
+- [THREE.js]                  https://github.com/mrdoob/three.js
+- [CANNON.js]                 https://github.com/schteppe/cannon.js
+- [RobotExpressive.glb]       https://github.com/mrdoob/three.js/tree/master/examples/models/gltf/RobotExpressive
+- [SheenChair.glb]            https://github.com/mrdoob/three.js/blob/master/examples/models/gltf/SheenChair.glb
+- [crate.gif]                 https://github.com/mrdoob/three.js/blob/master/examples/textures/crate.gif
+- [asteroid.png]              https://blog.naver.com/foxmann/90150373730
+- [Space background images]   https://www.eso.org/public/images/
