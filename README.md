@@ -27,6 +27,7 @@ There are two ways to play the game.
 1. Add "--disable-web-security --user-data-dir=%LOCALAPPDATA%\Google\chromeTemp-–allow-file-access-from-files" as the execution option for the Chrome browser
 2. Either build your own web server, or build a simple web server with an extension program such as "Web Server for Chrome" to specify a folder for the game and connect it to a local host.
 
+
 [Controll buttons]
 - W: Move forward
 - A: Move left
