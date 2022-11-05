@@ -1,7 +1,7 @@
 # DontShotgun
 Term project for Computer Graphics lecture
 
-[Team member Emails]
+[Team member emails]
 - 김현종 (guswhd5738@gachon.ac.kr)
 - 류상연 (teryas@gachon.ac.kr)
 - 이준희 (ljntiger325@naver.com)
