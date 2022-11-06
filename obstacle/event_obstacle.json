@@ -1,12 +1,75 @@
 event_obstacle = {
     "set": [
         {
-            "step": {
+            "step": {//obstacle1
                 "uuid": "aaba57f5-085b-4ad0-bdd7-eeda53f8f723"
             }, 
             "obstacle": {
                 "uuid": "17f64c57-aded-41b0-8ffa-10afb89e0f43",
                 "delay": "2000"
+            }
+        },
+        {
+            "step": {//obstacle2
+                "uuid": "30a0dc7c-6ac9-41e7-9dbb-8e7453eb0e3a"
+            }, 
+            "obstacle": {
+                "uuid": "3be47963-b59d-4cce-9e41-7142790e25b1",
+                "delay": "1000"
+            }
+        },
+        {
+            "step": {//obstacle3
+                "uuid": "0530ca81-dd60-4ef2-b206-dd0a643fe84a"
+            }, 
+            "obstacle": {
+                "uuid": "a9b0dceb-fba2-4094-bf22-3b00c207a375",
+                "delay": "1000"
+            }
+        },
+        {
+            "step": {//obstacle4
+                "uuid": "eeadc82e-033e-4917-8ece-1e3e140ae223"
+            }, 
+            "obstacle": {
+                "uuid": "b83cca95-e724-499c-a480-e65bf3fd2a3e",
+                "delay": "1000"
+            }
+        },
+        {
+            "step": {//obstacle5
+                "uuid": "6d789382-4fb9-49fa-9f14-d908d275c11b"
+            }, 
+            "obstacle": {
+                "uuid": "2e75bbf2-5249-4a2d-bb99-1802736e9716",
+                "delay": "1000"
+            }
+        },
+        {
+            "step": {//obstacle6
+                "uuid": "3781ae70-bda2-48f5-81b4-748504e5f2f2"
+            }, 
+            "obstacle": {
+                "uuid": "a5fa4327-b654-4400-9d29-7d896d9db23e",
+                "delay": "1000"
+            }
+        },
+        {
+            "step": {//obstacle6
+                "uuid": "3781ae70-bda2-48f5-81b4-748504e5f2f2"
+            }, 
+            "obstacle": {
+                "uuid": "b991e8f6-17a5-4cd2-ba17-daf9715cf113",
+                "delay": "1000"
+            }
+        },
+        {
+            "step": {//obstacle6
+                "uuid": "3781ae70-bda2-48f5-81b4-748504e5f2f2"
+            }, 
+            "obstacle": {
+                "uuid": "8daed3c7-c98d-4af3-9890-2278f6a1c270",
+                "delay": "1000"
             }
         }
     ]
