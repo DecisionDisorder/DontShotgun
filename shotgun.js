@@ -460,6 +460,7 @@ function death() {
 	if(isPlayerAlive){
 		isPlayerAlive = false;
 		deathCount++;
+		document.getElementById("die-text").innerText = deathCount;
 		restoreState();
 		fadeToAction("Death", 0.5);
 		document.getElementById('ui-game-over').style.visibility = "visible";
