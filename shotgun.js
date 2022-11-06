@@ -245,7 +245,9 @@ function movePlayer(deltaTime) {
 
 		// When jumping, a physical force is applied in a certain direction in the air
 		if(isJumping) {
-			playerBody.applyLocalForce(new CANNON.Vec3(movingDirection.x * calculatedMoveForce, 0, movingDirection.z * calculatedMoveForce), new CANNON.Vec3(0, 0, 0));
+			playerBody.applyLocalForce(
+				new CANNON.Vec3(movingDirection.x * calculatedMoveForce, 0, movingDirection.z * calculatedMoveForce), 
+				new CANNON.Vec3(0, 0, 0));
 		}
 		else {
 			// When the player is attached to the ground, it moves in the local coordinates.
@@ -942,7 +944,11 @@ function fallObstacle(obstacleIndex, eventBody, count) {
 	for(var j = 0; j < stepObjList.length; j++) {
 		if(stepObjList[j].uuid == eventObstacle.set[obstacleIndex].obstacle.uuid) {
 			// Set the original position of the obstacle
-			const originalPosition = { x: stepObjList[j].body.position.x, y: stepObjList[j].body.position.y, z: stepObjList[j].body.position.z };
+			const originalPosition = { 
+				x: stepObjList[j].body.position.x, 
+				y: stepObjList[j].body.position.y, 
+				z: stepObjList[j].body.position.z 
+			};
 			stepObjList[j].body.force.set(0, 0, 0);
 			stepObjList[j].body.velocity.set(0, 0, 0);
 			stepObjList[j].body.type = CANNON.Body.DYNAMIC;
