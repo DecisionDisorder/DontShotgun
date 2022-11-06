@@ -8,7 +8,7 @@ Term project for Computer Graphics lecture
 - 한성구 (skwms1223@gachon.ac.kr)
 
 [Trailer Video]
-- https://youtu.be/...
+- https://youtu.be/pOLX3nZ9XK0
 
 ## Introduction
 A jump action game in which the user does not have the initiative to jump.
