@@ -18,7 +18,12 @@ A jump action game in which the user does not have the initiative to jump.
 - Since the death count is recorded and displayed, reaching the destination with a minimum death count can be a criterion for proficiency.
 
 ## Screenshots
-
+<img src="/screenshots/StageSelection.png" width="960" height="540" title="Main Screen" alt="Stage Selection"></img>
+<img src="/screenshots/Tutorial0.png" width="960" height="540" title="Main Screen" alt="Stage Selection"></img>
+<img src="/screenshots/Tutorial1.png" width="960" height="540" title="Main Screen" alt="Stage Selection"></img>
+<img src="/screenshots/Tutorial2.png" width="960" height="540" title="Main Screen" alt="Stage Selection"></img>
+<img src="/screenshots/MainStage0.png" width="960" height="540" title="Main Screen" alt="Stage Selection"></img>
+<img src="/screenshots/MainStage1.png" width="960" height="540" title="Main Screen" alt="Stage Selection"></img>
 
 ## How to play
 [Playing game]
