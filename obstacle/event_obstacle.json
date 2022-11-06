@@ -6,7 +6,7 @@ event_obstacle = {
             }, 
             "obstacle": {
                 "uuid": "17f64c57-aded-41b0-8ffa-10afb89e0f43",
-                "delay": "500"
+                "delay": "2000"
             }
         }
     ]

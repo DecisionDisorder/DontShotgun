@@ -31,6 +31,166 @@ map_texture_main = {
         {
             "target_index": 7,
             "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 8,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 9,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 10,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 11,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 12,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 13,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 14,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 15,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 16,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 17,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 18,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 19,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 20,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 21,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 22,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 23,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 24,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 25,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 26,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 27,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 28,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 29,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 30,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 31,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 32,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 33,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 34,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 35,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 36,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 37,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 38,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 39,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 40,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 41,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 42,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 43,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 44,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 45,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 46,
+            "path": "./texture/asteroid.png"
+        },
+        {
+            "target_index": 47,
+            "path": "./texture/asteroid.png"
         }
         
        

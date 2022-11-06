@@ -629,11 +629,17 @@ function initStageSelection() {
 	// Load tutorial map
 	tutorialButton.addEventListener("click", function() {
 		activeStageSelection(false);
+		deathCount = 0;
+      	document.getElementById("die-text").innerText = deathCount;
+
 		loadTutorialMap();
 	});
 	// Load main stage map
 	mainStageButton.addEventListener("click", function() {
 		activeStageSelection(false);
+		deathCount = 0;
+      	document.getElementById("die-text").innerText = deathCount;
+
 		loadMainStageMap();
 	});
 	// Close selection menu

@@ -114,6 +114,20 @@
             #text-game-clear {
                 color: black;
             }
+            #gui{
+                position: absolute; 
+                left: 0px; top: 0px;
+                width: 200; height: 200;
+                z-index: 3; 
+                background: rgba( 255, 255, 255, 0 )
+            }
+            #die-text {
+                width: 100%; height: 20%;
+                text-align: center;
+                font-size: 40px;
+                vertical-align: middle;
+                color: white;
+            }
 
             h1 {text-align: center;}
             h2 {text-align: center;}
@@ -145,6 +159,11 @@
             <div id="ui-stage-clear">
                 <br><br><br><br>
                 <h1 id="text-game-clear"></h1>
+            </div>
+            <div id="gui">
+                <br>
+                <h2 style="color: white">DIE: </h2>
+                <p id="die-text">0</p>
             </div>
         </div>
     </body>
